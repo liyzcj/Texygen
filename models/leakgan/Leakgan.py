@@ -439,7 +439,7 @@ class Leakgan(Gan):
             start = time()
             loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
             end = time()
-            print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
+            print(f"pre-G: epoch:{epoch} \t time: {end - start:.1f}s")
             self.add_epoch()
             if epoch % 5 == 0:
                 generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
@@ -449,15 +449,16 @@ class Leakgan(Gan):
         print('start pre-train discriminator:')
         self.reset_epoch()
         for epoch in range(self.pre_epoch_num):
-            print('epoch:' + str(epoch))
+            start = time()
             self.train_discriminator()
+            end = time()
+            print(f"pre-D: epoch:{epoch} \t time: {end - start:.1f}s")
 
-
+        print('start adversarial:')
         self.reset_epoch()
         self.reward = Reward(model=self.generator, dis=self.discriminator, sess=self.sess, rollout_num=4)
         for epoch in range(self.adversarial_epoch_num//10):
             for epoch_ in range(10):
-                print('epoch:' + str(epoch) + '--' + str(epoch_))
                 start = time()
                 for index in range(1):
                     samples = self.generator.generate(self.sess, 1)
@@ -470,28 +471,35 @@ class Leakgan(Gan):
                     _, _, g_loss, w_loss = self.sess.run(
                         [self.generator.manager_updates, self.generator.worker_updates, self.generator.goal_loss,
                          self.generator.worker_loss, ], feed_dict=feed)
-                    print('epoch', str(epoch), 'g_loss', g_loss, 'w_loss', w_loss)
+                    print(f"epoch {epoch} \t g_loss: {g_loss} w_loss: {w_loss}")
                 end = time()
                 self.add_epoch()
-                print('epoch:' + str(epoch) + '--' + str(epoch_) + '\t time:' + str(end - start))
+                print(f"adv-G: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
                 if epoch_ % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
                     get_real_test_file()
                     self.evaluate()
 
-                for _ in range(15):
+                start = time()
+                for epoch__ in range(15):
+                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/15)", end='\r')
                     self.train_discriminator()
+                end = time()
+                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*15 + f"(15/15) \t time: {end - start:.1f}s")
+
             for epoch_ in range(5):
                 start = time()
                 loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                 end = time()
-                print('epoch:' + str(epoch) + '--' + str(epoch_) + '\t time:' + str(end - start))
-                # if epoch % 5 == 0:
-                #     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
-                #                          self.generator_file)
-                #     get_real_test_file()
-                #     self.evaluate()
+                self.add_epoch()
+                print(f"mle-G: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+                if epoch_ % 5 == 0:
+                    generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
+                                         self.generator_file)
+                    get_real_test_file()
+                    self.evaluate()
             for epoch_ in range(5):
-                print('epoch:' + str(epoch) + '--' + str(epoch_))
+                start = time()
                 self.train_discriminator()
-
+                end = time()
+                print(f"mle-D: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
