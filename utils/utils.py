@@ -24,6 +24,10 @@ def generate_samples(sess, trainable_model, batch_size, generated_num, output_fi
 
 
 def init_sess():
+    #++ For ignore log
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    tf.logging.set_verbosity(tf.logging.ERROR)
+    #++ =========================
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
