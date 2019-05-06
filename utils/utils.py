@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import os
 
 
 def generate_samples(sess, trainable_model, batch_size, generated_num, output_file=None, get_code=True):
