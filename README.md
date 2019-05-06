@@ -1,5 +1,22 @@
 <h1><img src="docs/fig/texygen-01.png" width="250"></h1>
 
+## TO-DO:
+
+### For ALL
+
+- [ ] reuse `self.reset_epoch`
+- [ ] ignore warning and logging of tensorflow
+- [ ] update for save model when training
+- [ ] repaire conflict of `tf.app.flags` and `getopt`
+
+### For LeakGAN
+
+- [ ] update Leakgan real evaluate matrics
+- [ ] moidfy evaluate policy for Leakgan
+- [ ] add `epoch,` in log head
+
+## Introduction
+
 Texygen is a benchmarking platform to support research on open-domain text generation models. Texygen has not only implemented a majority of text generation models, but also covered a set of metrics that evaluate the diversity, the quality and the consistency of the generated texts. The Texygen platform could help standardize the research on text generation and facilitate the sharing of fine-tuned open-source implementations among researchers for their work.  As a consequence, this would help in improving the reproductivity and reliability of future research work in text generation.
 
 For more details, please refer to our SIGIR 2018 paper: [Texygen: A Benchmarking Platform for Text Generation Models](https://arxiv.org/abs/1802.01886) by Yaoming Zhu et al.
