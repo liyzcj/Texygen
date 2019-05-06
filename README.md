@@ -11,7 +11,7 @@
 
 ### For LeakGAN
 
-- [ ] update Leakgan real evaluate matrics
+- [x] only bleu3 Leakgan real evaluate metric
 - [ ] moidfy evaluate policy for Leakgan
 - [x] add `epoch,` in log head
 

@@ -399,14 +399,18 @@ class Leakgan(Gan):
         return word_index_dict, index_word_dict
 
     def init_real_metric(self):
-        from utils.metrics.DocEmbSim import DocEmbSim
-        docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
-        self.add_metric(docsim)
+        # from utils.metrics.DocEmbSim import DocEmbSim
+        # docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
+        # self.add_metric(docsim)
 
-        inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
-        inll.set_name('nll-test')
-        self.add_metric(inll)
-
+        # inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
+        # inll.set_name('nll-test')
+        # self.add_metric(inll)
+        
+        bleu3 = Bleu(test_text=self.test_file, real_text='data/testdata/test_coco.txt', gram=3)
+        bleu3.set_name("bleu-3")
+        self.add_metric(bleu3)
+        
     def train_real(self, data_loc=None):
         from utils.text_process import code_to_text
         from utils.text_process import get_tokenlized
