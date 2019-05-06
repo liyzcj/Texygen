@@ -12,8 +12,9 @@
 ### For LeakGAN
 
 - [x] only bleu3 Leakgan real evaluate metric
-- [ ] moidfy evaluate policy for Leakgan
+- [x] moidfy evaluate policy for Leakgan
 - [x] add `epoch,` in log head
+- [ ] readable log in CLI
 
 ## Introduction
 

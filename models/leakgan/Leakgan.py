@@ -410,7 +410,7 @@ class Leakgan(Gan):
         bleu3 = Bleu(test_text=self.test_file, real_text='data/testdata/test_coco.txt', gram=3)
         bleu3.set_name("bleu-3")
         self.add_metric(bleu3)
-        
+
     def train_real(self, data_loc=None):
         from utils.text_process import code_to_text
         from utils.text_process import get_tokenlized
@@ -474,7 +474,7 @@ class Leakgan(Gan):
                 end = time()
                 self.add_epoch()
                 print('epoch:' + str(epoch) + '--' + str(epoch_) + '\t time:' + str(end - start))
-                if epoch % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
+                if epoch_ % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
                     get_real_test_file()
                     self.evaluate()
@@ -486,11 +486,11 @@ class Leakgan(Gan):
                 loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                 end = time()
                 print('epoch:' + str(epoch) + '--' + str(epoch_) + '\t time:' + str(end - start))
-                if epoch % 5 == 0:
-                    generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
-                                         self.generator_file)
-                    get_real_test_file()
-                    # self.evaluate()
+                # if epoch % 5 == 0:
+                #     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
+                #                          self.generator_file)
+                #     get_real_test_file()
+                #     self.evaluate()
             for epoch_ in range(5):
                 print('epoch:' + str(epoch) + '--' + str(epoch_))
                 self.train_discriminator()
