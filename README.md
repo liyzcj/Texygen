@@ -13,7 +13,7 @@
 
 - [ ] update Leakgan real evaluate matrics
 - [ ] moidfy evaluate policy for Leakgan
-- [ ] add `epoch,` in log head
+- [x] add `epoch,` in log head
 
 ## Introduction
 
