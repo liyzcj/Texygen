@@ -6,6 +6,7 @@
 
 - [x] reuse `self.reset_epoch`
 - [x] ignore warning and logging of tensorflow
+- [x] gitignore
 - [ ] update for save model when training
 - [ ] repaire conflict of `tf.app.flags` and `getopt`
 
