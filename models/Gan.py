@@ -43,9 +43,9 @@ class Gan:
         self.epoch += 1
 
     def reset_epoch(self):
-        # current not in use
-        return
+        # in use
         self.epoch = 0
+        return
 
     def evaluate(self):
         from time import time

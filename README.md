@@ -4,7 +4,7 @@
 
 ### For ALL
 
-- [ ] reuse `self.reset_epoch`
+- [x] reuse `self.reset_epoch`
 - [ ] ignore warning and logging of tensorflow
 - [ ] update for save model when training
 - [ ] repaire conflict of `tf.app.flags` and `getopt`
