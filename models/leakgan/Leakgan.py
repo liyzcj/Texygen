@@ -55,12 +55,7 @@ class Leakgan(Gan):
         self.vocab_size = 20
         self.emb_dim = 32
         self.hidden_dim = 32
-        flags = tf.app.flags
-        FLAGS = flags.FLAGS
-        flags.DEFINE_boolean('restore', False, 'Training or testing a model')
-        flags.DEFINE_boolean('resD', False, 'Training or testing a D model')
-        flags.DEFINE_integer('length', 20, 'The length of toy data')
-        flags.DEFINE_string('model', "", 'Model NAME')
+        FLAGS = tf.app.flags.FLAGS
         self.sequence_length = FLAGS.length
         self.filter_size = [2, 3]
         self.num_filters = [100, 200]

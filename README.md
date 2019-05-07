@@ -8,7 +8,8 @@
 - [x] ignore warning and logging of tensorflow
 - [x] gitignore
 - [ ] update for save model when training
-- [ ] repaire conflict of `tf.app.flags` and `getopt`
+- [x] repaire conflict of `tf.app.flags` and `getopt`
+- [ ] move path define to Gan class
 
 ### For LeakGAN
 

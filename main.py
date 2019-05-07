@@ -2,6 +2,7 @@ import getopt
 import sys
 
 from colorama import Fore
+import tensorflow as tf
 
 from models.gsgan.Gsgan import Gsgan
 from models.leakgan.Leakgan import Leakgan
@@ -12,15 +13,18 @@ from models.seqgan.Seqgan import Seqgan
 from models.textGan_MMD.Textgan import TextganMmd
 
 
+gans = {
+    'seqgan': Seqgan,
+    'gsgan': Gsgan,
+    'textgan': TextganMmd,
+    'leakgan': Leakgan,
+    'rankgan': Rankgan,
+    'maligan': Maligan,
+    'mle': Mle
+}
+training_mode = {'oracle', 'cfg', 'real'}
+
 def set_gan(gan_name):
-    gans = dict()
-    gans['seqgan'] = Seqgan
-    gans['gsgan'] = Gsgan
-    gans['textgan'] = TextganMmd
-    gans['leakgan'] = Leakgan
-    gans['rankgan'] = Rankgan
-    gans['maligan'] = Maligan
-    gans['mle'] = Mle
     try:
         Gan = gans[gan_name.lower()]
         gan = Gan()
@@ -50,36 +54,26 @@ def set_training(gan, training_method):
     return gan_func
 
 
-def parse_cmd(argv):
-    try:
-        opts, args = getopt.getopt(argv, "hg:t:d:")
+def def_flags():
+    flags = tf.app.flags
+    flags.DEFINE_enum('gan', 'mle', list(gans.keys()), 'Type of GAN to Training')
+    flags.DEFINE_enum('mode', 'oracle', training_mode, 'Type of training mode')
+    flags.DEFINE_string('data', 'data/image_coco.txt', 'Data for real Training')
+    flags.DEFINE_boolean('restore', False, 'Restore models for LeakGAN')
+    flags.DEFINE_boolean('resD', False, 'Restore discriminator for LeakGAN')
+    flags.DEFINE_integer('length', 20, 'Sequence Length for LeakGAN oracle training')
+    flags.DEFINE_string('model', "test", 'Experiment name for LeakGan')
+    return
 
-        opt_arg = dict(opts)
-        if '-h' in opt_arg.keys():
-            print('usage: python main.py -g <gan_type>')
-            print('       python main.py -g <gan_type> -t <train_type>')
-            print('       python main.py -g <gan_type> -t realdata -d <your_data_location>')
-            sys.exit(0)
-        if not '-g' in opt_arg.keys():
-            print('unspecified GAN type, use MLE training only...')
-            gan = set_gan('mle')
-        else:
-            gan = set_gan(opt_arg['-g'])
-        if not '-t' in opt_arg.keys():
-            gan.train_oracle()
-        else:
-            gan_func = set_training(gan, opt_arg['-t'])
-            if opt_arg['-t'] == 'real' and '-d' in opt_arg.keys():
-                gan_func(opt_arg['-d'])
-            else:
-                gan_func()
-    except getopt.GetoptError:
-        print('invalid arguments!')
-        print('`python main.py -h`  for help')
-        sys.exit(-1)
-    pass
-
+def main(args):
+    FLAGS = tf.app.flags.FLAGS
+    gan = set_gan(FLAGS.gan)
+    train_f = set_training(gan, FLAGS.mode)
+    if FLAGS.mode == 'real':
+        train_f(FLAGS.data)
+    else:
+        train_f()
 
 if __name__ == '__main__':
-    gan = None
-    parse_cmd(sys.argv[1:])
+    def_flags()
+    tf.app.run()
