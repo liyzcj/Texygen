@@ -9,7 +9,7 @@
 - [x] gitignore
 - [ ] update for save model when training
 - [x] repaire conflict of `tf.app.flags` and `getopt`
-- [ ] move path define to Gan class
+- [x] move path define to Gan class
 
 ### For LeakGAN
 

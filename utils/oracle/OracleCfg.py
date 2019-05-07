@@ -9,8 +9,8 @@ from utils.text_process import *
 
 
 class OracleCfg:
-    def __init__(self, cfg_grammar=None, origin_file='save/origin.txt', oracle_file='save/oracle.txt',
-                 wi_dict='save/word_index_dict.json', iw_dict='save/index_word_dict.json',
+    def __init__(self, cfg_grammar=None, origin_file='tmp/origin.txt', oracle_file='tmp/oracle.txt',
+                 wi_dict='tmp/word_index_dict.json', iw_dict='tmp/index_word_dict.json',
                  sequence_length=None):
         if cfg_grammar is None:
             cfg_grammar = """
