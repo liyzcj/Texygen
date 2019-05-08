@@ -22,6 +22,8 @@ class Gan:
         self.oracle_file = 'tmp/oracle.txt'
         self.generator_file = 'tmp/generator.txt'
         self.test_file = 'tmp/test_file.txt'
+        # experiment path
+        self.experiment_path = None
 
     def set_oracle(self, oracle):
         self.oracle = oracle

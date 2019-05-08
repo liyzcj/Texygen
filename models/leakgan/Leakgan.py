@@ -129,19 +129,17 @@ class Leakgan(Gan):
             self.generator.update_feature_function(self.discriminator)
 
     def evaluate(self):
-        generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         if self.oracle_data_loader is not None:
             self.oracle_data_loader.create_batches(self.generator_file)
         if self.log is not None:
-            if self.epoch == 0 or self.epoch == 1:
-                self.log.write("epoch,")
-                for metric in self.metrics:
-                    self.log.write(metric.get_name() + ',')
-                self.log.write('\n')
-            scores = super().evaluate()
-            for score in scores:
-                self.log.write(str(score) + ',')
-            self.log.write('\n')
+            with open(self.log, 'a') as log:
+                if self.epoch == 0 or self.epoch == 1:
+                    head = ["epoch"]
+                    for metric in self.metrics:
+                        head.append(metric.get_name())
+                    log.write(','.join(head) + '\n')
+                scores = super().evaluate()
+                log.write(','.join([str(s) for s in scores]) + '\n')
             return scores
         return super().evaluate()
 
@@ -418,7 +416,7 @@ class Leakgan(Gan):
 
         self.pre_epoch_num = 200
         self.adversarial_epoch_num = 500
-        self.log = open('experiment-log-leakgan-real.csv', 'w')
+
         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
 
@@ -460,11 +458,11 @@ class Leakgan(Gan):
                 loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                 end = time()
                 print(f"pre-G: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
-                self.add_epoch()
                 if self.epoch % 5 == 0:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
                     get_real_test_file()
                     self.evaluate()
+                self.add_epoch()
 
         print('start adversarial:')
         self.reset_epoch()

@@ -1,5 +1,6 @@
 import getopt
 import sys
+import os
 
 from colorama import Fore
 import tensorflow as tf
@@ -69,6 +70,17 @@ def def_flags():
 def main(args):
     FLAGS = tf.app.flags.FLAGS
     gan = set_gan(FLAGS.gan)
+    # experiment path
+    gan.experiment_path = os.path.join('experiment/', FLAGS.model)
+    if not os.path.exists(gan.experiment_path):
+        os.mkdir(gan.experiment_path)
+    print(f"{Fore.BLUE}Experiment path: {gan.experiment_path}{Fore.RESET}")
+    # Log file
+    gan.log = os.path.join(gan.experiment_path, f'experiment-log-{FLAGS.gan}-{FLAGS.mode}.csv')
+    if os.path.exists(gan.log):
+        print(f"{Fore.RED}[Error], Log file exist!{Fore.RESET}")
+        exit(-3)
+
     train_f = set_training(gan, FLAGS.mode)
     if FLAGS.mode == 'real':
         train_f(FLAGS.data)

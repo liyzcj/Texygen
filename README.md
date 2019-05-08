@@ -11,6 +11,11 @@
 - [x] repaire conflict of `tf.app.flags` and `getopt`
 - [x] move path define to Gan class
 - [x] specify GPU when training
+- [ ] save log in experiment fold
+  - [x] leakgan real mode
+- [ ] save generate file to experiment path
+- [ ] save model to experiment path
+- [ ] use json file save load hyperparameters
 
 ### For LeakGAN
 
@@ -18,7 +23,6 @@
 - [x] moidfy evaluate policy for Leakgan
 - [x] add `epoch,` in log head
 - [x] readable log in CLI for real train
-- [ ] use json file save load hyperparameters
 - [x] modify leakgan hyperparameter to origin leakgan
 
 ## Introduction
