@@ -17,6 +17,8 @@
 - [x] moidfy evaluate policy for Leakgan
 - [x] add `epoch,` in log head
 - [x] readable log in CLI for real train
+- [ ] use json file save load hyperparameters
+- [x] modify leakgan hyperparameter to origin leakgan
 
 ## Introduction
 
