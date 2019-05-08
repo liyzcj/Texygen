@@ -80,6 +80,10 @@ def main(args):
     if os.path.exists(gan.log):
         print(f"{Fore.RED}[Error], Log file exist!{Fore.RESET}")
         exit(-3)
+    # output path
+    gan.output_path = os.path.join(gan.experiment_path, 'output')
+    if not os.path.exists(gan.output_path):
+        os.mkdir(gan.output_path)
 
     train_f = set_training(gan, FLAGS.mode)
     if FLAGS.mode == 'real':

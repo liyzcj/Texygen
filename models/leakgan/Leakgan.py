@@ -409,10 +409,23 @@ class Leakgan(Gan):
         def get_real_test_file(dict=iw_dict):
             with open(self.generator_file, 'r') as file:
                 codes = get_tokenlized(self.generator_file)
+            output = code_to_text(codes=codes, dictionary=dict)
             with open(self.test_file, 'w') as outfile:
-                outfile.write(code_to_text(codes=codes, dictionary=dict))
+                outfile.write(output)
+            output_file = os.path.join(self.output_path, f"epoch_{self.epoch}.txt")
+            with open(output_file, 'w') as of:
+                of.write(output)
+            
 
         self.sess.run(tf.global_variables_initializer())
+        
+        #++ Saver
+        saver_variables = tf.global_variables()
+        saver = tf.train.Saver(saver_variables)
+        save_path = os.path.join(self.experiment_path, 'ckpts')
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        #++ ====================
 
         self.pre_epoch_num = 200
         self.adversarial_epoch_num = 500
@@ -423,26 +436,6 @@ class Leakgan(Gan):
         for a in range(1):
             g = self.sess.run(self.generator.gen_x, feed_dict={self.generator.drop_out: 1, self.generator.train: 1})
 
-        # print('start pre-train generator:')
-        # for epoch in range(self.pre_epoch_num):
-        #     start = time()
-        #     loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
-        #     end = time()
-        #     print(f"pre-G: epoch:{epoch} \t time: {end - start:.1f}s")
-        #     self.add_epoch()
-        #     if epoch % 5 == 0:
-        #         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-        #         get_real_test_file()
-        #         self.evaluate()
-
-        # print('start pre-train discriminator:')
-        # self.reset_epoch()
-        # for epoch in range(self.pre_epoch_num):
-        #     start = time()
-        #     self.train_discriminator()
-        #     end = time()
-        #     print(f"pre-D: epoch:{epoch} \t time: {end - start:.1f}s")
-        
         print('start pre-train leakgan:')
 
         for epoch in range(16):
@@ -463,9 +456,12 @@ class Leakgan(Gan):
                     get_real_test_file()
                     self.evaluate()
                 self.add_epoch()
+        
+        # save pre_train
+        saver.save(self.sess, os.path.join(save_path, 'pre_train'))
 
         print('start adversarial:')
-        self.reset_epoch()
+        # self.reset_epoch()
         self.reward = Reward(model=self.generator, dis=self.discriminator, sess=self.sess, rollout_num=4)
         for epoch in range(self.adversarial_epoch_num // 15):
             for epoch_ in range(15):
@@ -508,8 +504,3 @@ class Leakgan(Gan):
                                          self.generator_file)
                     get_real_test_file()
                     self.evaluate()
-            # for epoch_ in range(5):
-            #     start = time()
-            #     self.train_discriminator()
-            #     end = time()
-            #     print(f"mle-D: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")

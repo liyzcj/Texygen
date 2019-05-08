@@ -13,8 +13,6 @@
 - [x] specify GPU when training
 - [ ] save log in experiment fold
   - [x] leakgan real mode
-- [ ] save generate file to experiment path
-- [ ] save model to experiment path
 - [ ] use json file save load hyperparameters
 
 ### For LeakGAN
@@ -24,6 +22,8 @@
 - [x] add `epoch,` in log head
 - [x] readable log in CLI for real train
 - [x] modify leakgan hyperparameter to origin leakgan
+- [x] save pretrain model to experiment path
+- [x] save generate file to experiment path
 
 ## Introduction
 
