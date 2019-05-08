@@ -64,10 +64,11 @@ class DisDataloader():
                     negative_examples.append(parse_line)
         self.sentences = np.array(positive_examples + negative_examples)
 
+        self.sentences = split_sentence(self.sentences)
         # Generate labels
-        positive_labels = [[0, 1] for _ in positive_examples]
-        negative_labels = [[1, 0] for _ in negative_examples]
-        self.labels = np.concatenate([positive_labels, negative_labels], 0)
+        positive_labels = [[0, 1]] * len(positive_examples)
+        negative_labels = [[1, 0]] * len(negative_examples)
+        self.labels = np.concatenate([positive_labels, negative_labels] * self.seq_length)
 
         # Shuffle the data
         shuffle_indices = np.random.permutation(np.arange(len(self.labels)))
@@ -90,3 +91,20 @@ class DisDataloader():
 
     def reset_pointer(self):
         self.pointer = 0
+
+
+def split_sentence(input_data):
+    """
+    input_data: numpy.array with [batch_size x seq_length]
+    """
+    # make sure this is 2d array
+    assert input_data.ndim == 2
+    seq_length = input_data.shape[1]
+    padding_value = input_data[-1,-1]
+    # Load data 
+    datasets = []
+    for i in range(1, seq_length + 1):
+        padding_shape = [[0,0], [0, seq_length - i]]
+        data = np.pad(input_data[:,:i], padding_shape, 'constant', constant_values=padding_value)
+        datasets.append(data)
+    return np.concatenate(datasets)

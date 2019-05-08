@@ -28,6 +28,7 @@
 ### For My leakgan
 
 - [x] create class for myleakgan
+- [x] dis data loader to split sentence
 
 ## Introduction
 
