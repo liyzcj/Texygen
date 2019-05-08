@@ -450,7 +450,7 @@ class Leakgan(Gan):
                 start = time()
                 loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                 end = time()
-                print(f"pre-G: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+                print(f"pre-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
                 if self.epoch % 5 == 0:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
                     get_real_test_file()
@@ -480,7 +480,7 @@ class Leakgan(Gan):
                     print(f"epoch {epoch} \t g_loss: {g_loss} w_loss: {w_loss}")
                 end = time()
                 self.add_epoch()
-                print(f"adv-G: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+                print(f"adv-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
                 if epoch_ % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
                     get_real_test_file()
@@ -498,7 +498,7 @@ class Leakgan(Gan):
                 loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                 end = time()
                 self.add_epoch()
-                print(f"mle-G: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+                print(f"mle-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
                 if epoch_ % 5 == 0:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
                                          self.generator_file)
