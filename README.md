@@ -25,6 +25,10 @@
 - [x] save pretrain model to experiment path
 - [x] save generate file to experiment path
 
+### For My leakgan
+
+- [x] create class for myleakgan
+
 ## Introduction
 
 Texygen is a benchmarking platform to support research on open-domain text generation models. Texygen has not only implemented a majority of text generation models, but also covered a set of metrics that evaluate the diversity, the quality and the consistency of the generated texts. The Texygen platform could help standardize the research on text generation and facilitate the sharing of fine-tuned open-source implementations among researchers for their work.  As a consequence, this would help in improving the reproductivity and reliability of future research work in text generation.

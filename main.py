@@ -12,6 +12,7 @@ from models.mle.Mle import Mle
 from models.rankgan.Rankgan import Rankgan
 from models.seqgan.Seqgan import Seqgan
 from models.textGan_MMD.Textgan import TextganMmd
+from models.myleakgan.Leakgan import MyLeakgan
 
 
 gans = {
@@ -21,7 +22,8 @@ gans = {
     'leakgan': Leakgan,
     'rankgan': Rankgan,
     'maligan': Maligan,
-    'mle': Mle
+    'mle': Mle,
+    'myleakgan':MyLeakgan
 }
 training_mode = {'oracle', 'cfg', 'real'}
 
