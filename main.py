@@ -63,6 +63,7 @@ def def_flags():
     flags.DEFINE_boolean('resD', False, 'Restore discriminator for LeakGAN')
     flags.DEFINE_integer('length', 20, 'Sequence Length for LeakGAN oracle training')
     flags.DEFINE_string('model', "test", 'Experiment name for LeakGan')
+    flags.DEFINE_integer('gpu', 0, 'The GPU used for training')
     return
 
 def main(args):

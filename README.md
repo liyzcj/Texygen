@@ -10,6 +10,7 @@
 - [ ] update for save model when training
 - [x] repaire conflict of `tf.app.flags` and `getopt`
 - [x] move path define to Gan class
+- [x] specify GPU when training
 
 ### For LeakGAN
 
