@@ -488,10 +488,10 @@ class Leakgan(Gan):
 
                 start = time()
                 for epoch__ in range(5):
-                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/15)", end='\r')
+                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/5)", end='\r')
                     self.train_discriminator()
                 end = time()
-                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*15 + f"(15/15) \t time: {end - start:.1f}s")
+                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*15 + f"(5/5) \t time: {end - start:.1f}s")
 
             for epoch_ in range(1):
                 start = time()
