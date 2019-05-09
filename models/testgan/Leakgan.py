@@ -377,11 +377,10 @@ class Testgan(Gan):
     def init_real_metric(self):
 
         from utils.metrics.NumA import NumA
-        from utils.metrics.Nll import Nll
 
-        inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
-        inll.set_name('nll-test')
-        self.add_metric(inll)
+        # inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
+        # inll.set_name('nll-test')
+        # self.add_metric(inll)
 
         numa = NumA(self.test_file, 'a')
         self.add_metric(numa)
@@ -416,9 +415,6 @@ class Testgan(Gan):
             saver.restore(self.sess, restore_model)
         #++ ====================
 
-        self.pre_epoch_num = 200
-        self.adversarial_epoch_num = 500
-
         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
 
@@ -427,14 +423,14 @@ class Testgan(Gan):
 
         print('start pre-train leakgan:')
         if not FLAGS.restore:
-            for epoch in range(1):
-                # for epoch_ in range(20):
-                #     start = time()
-                #     dloss = self.train_discriminator()
-                #     end = time()
-                #     print(f"pre-D: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s \t dloss: {dloss:.3f}")
+            for epoch in range(self.pre_epoch_num):
+                for epoch_ in range(self.pre_epoch_num_dis):
+                    start = time()
+                    dloss = self.train_discriminator()
+                    end = time()
+                    print(f"pre-D: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s \t dloss: {dloss:.3f}")
             
-                for epoch_ in range(3):
+                for epoch_ in range(self.pre_epoch_num_gen):
                     start = time()
                     loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                     end = time()
@@ -447,12 +443,12 @@ class Testgan(Gan):
         
             # save pre_train
             saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
-        exit()
+            
         print('start adversarial:')
         # self.reset_epoch()
         self.reward = Reward(dis=self.discriminator, sess=self.sess)
-        for epoch in range(self.adversarial_epoch_num // 15):
-            for epoch_ in range(15):
+        for epoch in range(self.adversarial_epoch):
+            for epoch_ in range(self.adversarial_epoch_adv):
                 start = time()
                 for index in range(1):
                     samples = self.generator.generate(self.sess, 1)
@@ -481,14 +477,14 @@ class Testgan(Gan):
                 end = time()
                 print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*10 + f"(10/10) \t time: {end - start:.1f}s \t dloss: {dloss:.3f}")
 
-            # for epoch_ in range(1):
-            #     start = time()
-            #     loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
-            #     end = time()
-            #     self.add_epoch()
-            #     print(f"mle-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
-            #     if epoch_ % 5 == 0:
-            #         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
-            #                              self.generator_file)
-            #         get_real_test_file()
-            #         self.evaluate()
+            for epoch_ in range(self.adversarial_epoch_mle):
+                start = time()
+                loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
+                end = time()
+                self.add_epoch()
+                print(f"mle-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+                if epoch_ % 5 == 0:
+                    generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
+                                         self.generator_file)
+                    get_real_test_file()
+                    self.evaluate()
