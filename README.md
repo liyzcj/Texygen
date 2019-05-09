@@ -14,6 +14,7 @@
 - [ ] save log in experiment fold
   - [x] leakgan real mode
 - [ ] use json file save load hyperparameters
+- [ ] new metric : number of tokens
 
 ### For LeakGAN
 
