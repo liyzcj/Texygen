@@ -37,5 +37,5 @@ class Reward(object):
         ypred_for_auc = self.sess.run(self.dis.ypred_for_auc, feed)
         ypred = np.array([item[1] for item in ypred_for_auc])
         batch_size = ypred.shape[0]
-        rewards = np.transpose(ypred.reshape([1, batch_size]))
+        rewards = np.transpose(rescale(ypred.reshape([1, batch_size])))
         return rewards

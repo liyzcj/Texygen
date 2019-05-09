@@ -7,13 +7,13 @@ def redistribution(idx, total, min_v):
 
 
 def rescale(reward, rollout_num=1.0):
-    reward = np.array(reward)
-    x, y = reward.shape
+    reward = np.array(reward) # seq_length x batch_size
+    x, y = reward.shape # x = seq_length y = batch_size
     ret = np.zeros((x, y))
     for i in range(x):
-        l = reward[i]
+        l = reward[i] # l:(batch_size,)
         rescalar = {}
-        for s in l:
+        for s in l: # s: scalar
             rescalar[s] = s
         idxx = 1
         min_s = 1.0
