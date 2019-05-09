@@ -14,8 +14,6 @@ class Gan:
         self.sess = init_sess()
         self.metrics = list()
         self.epoch = 0
-        self.pre_epoch_num = 80
-        self.adversarial_epoch_num = 100
         self.log = None
         self.reward = None
         # temp file
@@ -25,6 +23,10 @@ class Gan:
         # experiment path
         self.experiment_path = None
         self.output_path = None
+        self.save_path = None
+    
+    def set_config(self, config):
+        self.__dict__.update(config.dict)
 
     def set_oracle(self, oracle):
         self.oracle = oracle

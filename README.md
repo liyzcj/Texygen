@@ -8,13 +8,17 @@
 - [x] ignore warning and logging of tensorflow
 - [x] gitignore
 - [ ] update for save model when training
+  - [x] leakgan
 - [x] repaire conflict of `tf.app.flags` and `getopt`
 - [x] move path define to Gan class
 - [x] specify GPU when training
 - [ ] save log in experiment fold
   - [x] leakgan real mode
-- [ ] use json file save load hyperparameters
-- [ ] new metric : number of tokens
+  - [x] myleakgan real mode
+  - [x] testgan real mode
+- [x] use json file save load hyperparameters
+- [x] new metric : number of tokens
+- [ ] analyze sentence corpus
 
 ### For LeakGAN
 
@@ -30,6 +34,11 @@
 
 - [x] create class for myleakgan
 - [x] dis data loader to split sentence
+
+### Testgan
+
+- [x] Add Testgan
+- [x] create config file for TestGan
 
 ## Introduction
 

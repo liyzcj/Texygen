@@ -13,7 +13,9 @@ from models.rankgan.Rankgan import Rankgan
 from models.seqgan.Seqgan import Seqgan
 from models.textGan_MMD.Textgan import TextganMmd
 from models.myleakgan.Leakgan import MyLeakgan
+from models.testgan.Leakgan import Testgan
 
+from utils.config import Config
 
 gans = {
     'seqgan': Seqgan,
@@ -23,7 +25,8 @@ gans = {
     'rankgan': Rankgan,
     'maligan': Maligan,
     'mle': Mle,
-    'myleakgan':MyLeakgan
+    'myleakgan': MyLeakgan,
+    'testgan': Testgan
 }
 training_mode = {'oracle', 'cfg', 'real'}
 
@@ -31,8 +34,6 @@ def set_gan(gan_name):
     try:
         Gan = gans[gan_name.lower()]
         gan = Gan()
-        gan.vocab_size = 5000
-        gan.generate_num = 10000
         return gan
     except KeyError:
         print(Fore.RED + 'Unsupported GAN type: ' + gan_name + Fore.RESET)
@@ -73,19 +74,39 @@ def main(args):
     FLAGS = tf.app.flags.FLAGS
     gan = set_gan(FLAGS.gan)
     # experiment path
-    gan.experiment_path = os.path.join('experiment/', FLAGS.model)
+    gan.experiment_path = os.path.join('experiment', FLAGS.model)
     if not os.path.exists(gan.experiment_path):
         os.mkdir(gan.experiment_path)
     print(f"{Fore.BLUE}Experiment path: {gan.experiment_path}{Fore.RESET}")
+
     # Log file
     gan.log = os.path.join(gan.experiment_path, f'experiment-log-{FLAGS.gan}-{FLAGS.mode}.csv')
     if os.path.exists(gan.log):
         print(f"{Fore.RED}[Error], Log file exist!{Fore.RESET}")
         exit(-3)
+
+    # Config file
+    config_file = os.path.join(gan.experiment_path, 'config.json')
+    if not os.path.exists(config_file):
+        config_file = os.path.join('models', FLAGS.gan, 'config.json')
+        # copy config file
+        from shutil import copyfile
+        copyfile(config_file, os.path.join(gan.experiment_path, 'config.json'))
+        if not os.path.exists(config_file):
+            print(f"{Fore.RED}[Error], Config file not exist!{Fore.RESET}")
+    print(f"{Fore.BLUE}Using config: {config_file}{Fore.RESET}")
+    config = Config(config_file)
+    gan.set_config(config)
+    
     # output path
     gan.output_path = os.path.join(gan.experiment_path, 'output')
     if not os.path.exists(gan.output_path):
         os.mkdir(gan.output_path)
+
+    # save path
+    gan.save_path = os.path.join(gan.experiment_path, 'ckpts')
+    if not os.path.exists(gan.save_path):
+        os.mkdir(gan.save_path)
 
     train_f = set_training(gan, FLAGS.mode)
     if FLAGS.mode == 'real':
