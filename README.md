@@ -18,7 +18,7 @@
   - [x] testgan real mode
 - [x] use json file save load hyperparameters
 - [x] new metric : number of tokens
-- [ ] analyze sentence corpus
+- [x] analyze sentence corpus
 - [ ] create config.json for each gan
 - [ ] move epoch_num parameters in config.json
 
