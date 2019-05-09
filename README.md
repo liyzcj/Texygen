@@ -19,6 +19,8 @@
 - [x] use json file save load hyperparameters
 - [x] new metric : number of tokens
 - [ ] analyze sentence corpus
+- [ ] create config.json for each gan
+- [ ] move epoch_num parameters in config.json
 
 ### For LeakGAN
 
