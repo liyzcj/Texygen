@@ -52,22 +52,6 @@ class MyLeakgan(Gan):
     def __init__(self, oracle=None):
         super().__init__()
         # you can change parameters, generator here
-        self.vocab_size = 20
-        self.emb_dim = 32
-        self.hidden_dim = 32
-        FLAGS = tf.app.flags.FLAGS
-        self.sequence_length = FLAGS.length
-        self.filter_size = [2, 3]
-        self.num_filters = [100, 200]
-        # self.filter_size = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 32, 37]
-        # self.num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160, 160, 160]
-        self.l2_reg_lambda = 0.2
-        self.dropout_keep_prob = 1.0
-        self.batch_size = 64
-        self.generate_num = 256
-        self.start_token = 0
-        self.dis_embedding_dim = 32
-        self.goal_size = 16
 
     def init_oracle_trainng(self, oracle=None):
         goal_out_size = sum(self.num_filters)
@@ -424,13 +408,7 @@ class MyLeakgan(Gan):
         #++ Saver
         saver_variables = tf.global_variables()
         saver = tf.train.Saver(saver_variables)
-        save_path = os.path.join(self.experiment_path, 'ckpts')
-        if not os.path.exists(save_path):
-            os.mkdir(save_path)
         #++ ====================
-
-        self.pre_epoch_num = 200
-        self.adversarial_epoch_num = 500
 
         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
@@ -460,7 +438,7 @@ class MyLeakgan(Gan):
                 self.add_epoch()
         
         # save pre_train
-        saver.save(self.sess, os.path.join(save_path, 'pre_train'))
+        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
         print('start adversarial:')
         # self.reset_epoch()
@@ -490,10 +468,10 @@ class MyLeakgan(Gan):
 
                 start = time()
                 for epoch__ in range(5):
-                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/15)", end='\r')
+                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/5)", end='\r')
                     self.train_discriminator()
                 end = time()
-                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*15 + f"(15/15) \t time: {end - start:.1f}s")
+                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*5 + f"(5/5) \t time: {end - start:.1f}s")
 
             for epoch_ in range(1):
                 start = time()

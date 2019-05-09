@@ -30,6 +30,7 @@
 
 - [x] create class for myleakgan
 - [x] dis data loader to split sentence
+- [x] create config.json
 
 ### Testgan
 
