@@ -14,6 +14,7 @@ from models.seqgan.Seqgan import Seqgan
 from models.textGan_MMD.Textgan import TextganMmd
 from models.myleakgan.Leakgan import MyLeakgan
 from models.testgan.Leakgan import Testgan
+from models.oldleakgan.Leakgan import OldLeakgan
 
 from utils.config import Config
 
@@ -26,7 +27,8 @@ gans = {
     'maligan': Maligan,
     'mle': Mle,
     'myleakgan': MyLeakgan,
-    'testgan': Testgan
+    'testgan': Testgan,
+    'oldleakgan': OldLeakgan
 }
 training_mode = {'oracle', 'cfg', 'real'}
 

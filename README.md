@@ -14,6 +14,7 @@
 - [x] use json file save load hyperparameters
 - [x] new metric : number of tokens
 - [x] analyze sentence corpus
+- [x] add origin leakgan
 
 ### For LeakGAN
 
