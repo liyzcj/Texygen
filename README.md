@@ -7,20 +7,13 @@
 - [x] reuse `self.reset_epoch`
 - [x] ignore warning and logging of tensorflow
 - [x] gitignore
-- [ ] update for save model when training
-  - [x] leakgan
 - [x] repaire conflict of `tf.app.flags` and `getopt`
 - [x] move path define to Gan class
 - [x] specify GPU when training
-- [ ] save log in experiment fold
-  - [x] leakgan real mode
-  - [x] myleakgan real mode
-  - [x] testgan real mode
+- [x] save log in experiment fold
 - [x] use json file save load hyperparameters
 - [x] new metric : number of tokens
 - [x] analyze sentence corpus
-- [ ] create config.json for each gan
-- [ ] move epoch_num parameters in config.json
 
 ### For LeakGAN
 
@@ -31,6 +24,7 @@
 - [x] modify leakgan hyperparameter to origin leakgan
 - [x] save pretrain model to experiment path
 - [x] save generate file to experiment path
+- [x] create config.json
 
 ### For My leakgan
 

@@ -52,20 +52,6 @@ class Leakgan(Gan):
     def __init__(self, oracle=None):
         super().__init__()
         # you can change parameters, generator here
-        self.vocab_size = 20
-        self.emb_dim = 128
-        self.hidden_dim = 128
-        FLAGS = tf.app.flags.FLAGS
-        self.sequence_length = FLAGS.length
-        self.filter_size = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 32, 37]
-        self.num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160, 160, 160]
-        self.l2_reg_lambda = 0.2
-        self.dropout_keep_prob = 1.0
-        self.batch_size = 64
-        self.generate_num = 256
-        self.start_token = 0
-        self.dis_embedding_dim = 256
-        self.goal_size = 16
 
     def init_oracle_trainng(self, oracle=None):
         goal_out_size = sum(self.num_filters)
@@ -392,9 +378,9 @@ class Leakgan(Gan):
         # docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
         # self.add_metric(docsim)
 
-        # inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
-        # inll.set_name('nll-test')
-        # self.add_metric(inll)
+        inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
+        inll.set_name('nll-test')
+        self.add_metric(inll)
         
         bleu3 = Bleu(test_text=self.test_file, real_text='data/testdata/test_coco.txt', gram=3)
         bleu3.set_name("bleu-3")
@@ -422,13 +408,7 @@ class Leakgan(Gan):
         #++ Saver
         saver_variables = tf.global_variables()
         saver = tf.train.Saver(saver_variables)
-        save_path = os.path.join(self.experiment_path, 'ckpts')
-        if not os.path.exists(save_path):
-            os.mkdir(save_path)
         #++ ====================
-
-        self.pre_epoch_num = 200
-        self.adversarial_epoch_num = 500
 
         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
@@ -458,7 +438,7 @@ class Leakgan(Gan):
                 self.add_epoch()
         
         # save pre_train
-        saver.save(self.sess, os.path.join(save_path, 'pre_train'))
+        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
         print('start adversarial:')
         # self.reset_epoch()
