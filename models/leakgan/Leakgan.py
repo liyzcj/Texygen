@@ -441,7 +441,7 @@ class Leakgan(Gan):
         saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
         print('start adversarial:')
-        # self.reset_epoch()
+        self.reset_epoch()
         self.reward = Reward(model=self.generator, dis=self.discriminator, sess=self.sess, rollout_num=4)
         for epoch in range(self.adversarial_epoch_num // 15):
             for epoch_ in range(15):

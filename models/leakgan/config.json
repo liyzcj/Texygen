@@ -12,6 +12,6 @@
   "start_token": 0,
   "dis_embedding_dim": 256,
   "goal_size": 16,
-  "pre_epoch_num": 200,
-  "adversarial_epoch_num": 500
+  "pre_epoch_num": 80,
+  "adversarial_epoch_num": 200
 }
