@@ -1,10 +1,10 @@
 """
-Computing the bleu of training file by test file
+Computing the self-bleu of training file.
 """
 
 import sys
 sys.path.append('d:\\Texygen')
-from utils.metrics.Bleu import Bleu
+from utils.metrics.SelfBleu import SelfBleu
 import os
 import json
 
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     
   score = {}
 
-  bleu = Bleu(train_file, test_file)
+  bleu = SelfBleu(train_file)
 
   for i in range(2,6):
     bleu.gram = i
@@ -25,11 +25,3 @@ if __name__ == "__main__":
 
   with open('res.json', 'w') as f:
     json.dump(score, f)
-
-## Result
-# {
-#   "Bleu2": 0.5176190691145264, 
-#   "Bleu3": 0.2837650014127829, 
-#   "Bleu4": 0.16248278209254763, 
-#   "Bleu5": 0.10303549181525805
-# }
