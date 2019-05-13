@@ -4,7 +4,7 @@ from utils.utils import init_sess
 
 
 class Gan(metaclass=ABCMeta):
-    
+
     def __init__(self):
         self.oracle = None
         self.generator = None
@@ -21,10 +21,10 @@ class Gan(metaclass=ABCMeta):
         self.oracle_file = None
         self.generator_file = None
         self.test_file = None
-        # experiment path
-        self.experiment_path = None
+        # pathes
         self.output_path = None
         self.save_path = None
+        self.summary_path = None
 
     def set_config(self, config):
         self.__dict__.update(config.dict)
