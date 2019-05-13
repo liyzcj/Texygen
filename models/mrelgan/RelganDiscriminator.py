@@ -62,7 +62,7 @@ class Discriminator(Dis):
         # batch_size x 1 x num_rep x num_filters_total
         h_pool = tf.concat(pooled_outputs, 3)
         # print('shape of h_pool: {}'.format(h_pool.get_shape().as_list()))
-        # h_pool_flat = tf.reshape(h_pool, [-1, num_filters_total])
+        h_pool_flat = tf.reshape(h_pool, [-1, num_filters_total])
 
         # Add highway
         # (batch_size*num_rep) x num_filters_total
