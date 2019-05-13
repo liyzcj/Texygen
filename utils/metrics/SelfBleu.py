@@ -13,7 +13,7 @@ class SelfBleu(Metrics):
         self.name = 'Self-Bleu'
         self.test_data = test_text
         self.gram = gram
-        self.sample_size = 500
+        self.sample_size = 200
         self.reference = None
         self.is_first = True
 
@@ -23,9 +23,9 @@ class SelfBleu(Metrics):
     def get_score(self, is_fast=True, ignore=False):
         if ignore:
             return 0
-        if self.is_first:
-            self.get_reference()
-            self.is_first = False
+        # if self.is_first:
+        #     self.get_reference()
+        #     self.is_first = False
         if is_fast:
             return self.get_bleu_fast()
         return self.get_bleu_parallel()

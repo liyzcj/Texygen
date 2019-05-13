@@ -14,7 +14,7 @@ class Bleu(Metrics):
         self.test_data = test_text
         self.real_data = real_text
         self.gram = gram
-        self.sample_size = 500
+        self.sample_size = 200
         self.reference = None
         self.is_first = True
 
