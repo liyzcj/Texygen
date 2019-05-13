@@ -1,9 +1,9 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 
 from utils.utils import init_sess
 
 
-class Gan:
+class Gan(metaclass = ABCMeta):
     def __init__(self):
         self.oracle = None
         self.generator = None
@@ -17,9 +17,9 @@ class Gan:
         self.log = None
         self.reward = None
         # temp file
-        self.oracle_file = 'tmp/oracle.txt'
-        self.generator_file = 'tmp/generator.txt'
-        self.test_file = 'tmp/test_file.txt'
+        self.oracle_file = None
+        self.generator_file = None
+        self.test_file = None
         # experiment path
         self.experiment_path = None
         self.output_path = None
@@ -83,4 +83,21 @@ class Gan:
         pass
 
     def train_real(self):
+        pass
+
+class Gen(metaclass = ABCMeta):
+
+    def __init__(self):
+        pass
+    
+    @abstractmethod
+    def generate(self):
+        pass
+
+    @abstractmethod
+    def get_nll(self):
+        pass
+    
+    @abstractmethod
+    def pretrain_step(self):
         pass

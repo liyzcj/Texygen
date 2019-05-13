@@ -81,6 +81,14 @@ def main(args):
         os.mkdir(gan.experiment_path)
     print(f"{Fore.BLUE}Experiment path: {gan.experiment_path}{Fore.RESET}")
 
+    # tempfile
+    tmp_path = os.path.join(gan.experiment_path, 'tmp')
+    if not os.path.exists(tmp_path):
+        os.mkdir(tmp_path)
+    gan.oracle_file = os.path.join(tmp_path, 'oracle.txt')
+    gan.generator_file = os.path.join(tmp_path, 'generator.txt')
+    gan.test_file = os.path.join(tmp_path, 'test_file.txt')
+
     # Log file
     gan.log = os.path.join(gan.experiment_path, f'experiment-log-{FLAGS.gan}-{FLAGS.mode}.csv')
     if os.path.exists(gan.log):
