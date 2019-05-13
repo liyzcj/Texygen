@@ -16,6 +16,7 @@ from models.myleakgan.Leakgan import MyLeakgan
 from models.testgan.Leakgan import Testgan
 from models.oldleakgan.Leakgan import OldLeakgan
 from models.relgan.Relgan import Relgan
+from models.mrelgan.Relgan import MRelgan
 
 from utils.config import Config
 
@@ -30,7 +31,8 @@ gans = {
     'myleakgan': MyLeakgan,
     'testgan': Testgan,
     'oldleakgan': OldLeakgan,
-    'relgan': Relgan
+    'relgan': Relgan,
+    'mrelgan': MRelgan
 }
 training_mode = {'oracle', 'cfg', 'real'}
 
