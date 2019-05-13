@@ -3,7 +3,8 @@ from abc import abstractmethod, ABCMeta
 from utils.utils import init_sess
 
 
-class Gan(metaclass = ABCMeta):
+class Gan(metaclass=ABCMeta):
+    
     def __init__(self):
         self.oracle = None
         self.generator = None
@@ -24,7 +25,7 @@ class Gan(metaclass = ABCMeta):
         self.experiment_path = None
         self.output_path = None
         self.save_path = None
-    
+
     def set_config(self, config):
         self.__dict__.update(config.dict)
 
@@ -85,11 +86,12 @@ class Gan(metaclass = ABCMeta):
     def train_real(self):
         pass
 
-class Gen(metaclass = ABCMeta):
+
+class Gen(metaclass=ABCMeta):
 
     def __init__(self):
         pass
-    
+
     @abstractmethod
     def generate(self):
         pass
@@ -97,7 +99,17 @@ class Gen(metaclass = ABCMeta):
     @abstractmethod
     def get_nll(self):
         pass
-    
+
     @abstractmethod
     def pretrain_step(self):
+        pass
+
+
+class Dis(metaclass=ABCMeta):
+
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def predict(self):
         pass

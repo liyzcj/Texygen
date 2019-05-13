@@ -1,9 +1,9 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
+from models.Gan import Gen
 
-
-class Generator(object):
+class Generator(Gen):
     def __init__(self, sequence_length, num_classes, num_vocabulary,
                  emb_dim, dis_emb_dim, filter_sizes, num_filters, batch_size, hidden_dim, start_token, goal_out_size,
                  goal_size, step_size, D_model, LSTMlayer_num=1, l2_reg_lambda=0.0, learning_rate=0.01,drop_out=1):

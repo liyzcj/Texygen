@@ -1,6 +1,7 @@
 import tensorflow as tf
 import  numpy as np
 from tensorflow.python.ops import tensor_array_ops, control_flow_ops
+from models.Gan import Dis
 
 def cosine_similarity(a,b):
     normalize_a = tf.nn.l2_normalize(a, -1)
@@ -56,7 +57,7 @@ def highway(input_, size, num_layers=1, bias=-2.0, f=tf.nn.relu, scope='Highway'
 
     return output
 
-class Discriminator(object):
+class Discriminator(Dis):
     def __init__(self, sequence_length, num_classes, vocab_size,dis_emb_dim,filter_sizes, num_filters,batch_size,hidden_dim,
                  start_token,goal_out_size,step_size,l2_reg_lambda=0.0, dropout_keep_prob=0.75):
         self.sequence_length = sequence_length
@@ -88,7 +89,7 @@ class Discriminator(object):
                 D_feature = self.FeatureExtractor_unit(self.D_input_x,self.dropout_keep_prob)#,self.dropout_keep_prob)
                 self.feature_scope.reuse_variables()
 
-            D_scores, D_predictions,self.ypred_for_auc = self.classification(D_feature)
+            D_scores, D_predictions,self.ypred_for_auc = self.predict(D_feature)
             losses = tf.nn.softmax_cross_entropy_with_logits(logits=D_scores, labels=self.D_input_y)
             self.D_loss = tf.reduce_mean(losses) + self.l2_reg_lambda * self.D_l2_loss
 
@@ -158,7 +159,7 @@ class Discriminator(object):
 
         return unit
 
-    def classification(self, D_input):
+    def predict(self, D_input):
         with tf.variable_scope('Discriminator'):
             W_d = tf.Variable(tf.truncated_normal([self.num_filters_total, self.num_classes], stddev=0.1), name="W")
             b_d = tf.Variable(tf.constant(0.1, shape=[self.num_classes]), name="b")

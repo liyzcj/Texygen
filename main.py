@@ -63,11 +63,9 @@ def set_training(gan, training_method):
 def def_flags():
     flags = tf.app.flags
     flags.DEFINE_enum('gan', 'mle', list(gans.keys()), 'Type of GAN to Training')
-    flags.DEFINE_enum('mode', 'oracle', training_mode, 'Type of training mode')
+    flags.DEFINE_enum('mode', 'real', training_mode, 'Type of training mode')
     flags.DEFINE_string('data', 'data/image_coco.txt', 'Data for real Training')
     flags.DEFINE_boolean('restore', False, 'Restore models for LeakGAN')
-    flags.DEFINE_boolean('resD', False, 'Restore discriminator for LeakGAN')
-    flags.DEFINE_integer('length', 20, 'Sequence Length for LeakGAN oracle training')
     flags.DEFINE_string('model', "test", 'Experiment name for LeakGan')
     flags.DEFINE_integer('gpu', 0, 'The GPU used for training')
     return
