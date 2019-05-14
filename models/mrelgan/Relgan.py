@@ -195,18 +195,25 @@ class MRelgan(Gan):
         self.sum_writer = tf.summary.FileWriter(
             self.summary_path, self.sess.graph)
 
-        print('start pre-train Relgan:')
-        for epoch in range(self.npre_epochs // self.ntest_pre):
-            self.evaluate_sum()
-            for _ in tqdm(range(self.ntest_pre), ncols=50):
-                g_pretrain_loss_np = self.pre_train_epoch()
-                self.add_epoch()
+        # restore 
+        if self.restore:
+            restore_from = tf.train.latest_checkpoint(self.save_path)
+            bae = int(restore_from.split('-')[-1])
+            saver.restore(self.sess, restore_from)
+        else:
+            bae = 0
+            print('start pre-train Relgan:')
+            for epoch in range(self.npre_epochs // self.ntest_pre):
+                self.evaluate_sum()
+                for _ in tqdm(range(self.ntest_pre), ncols=50):
+                    g_pretrain_loss_np = self.pre_train_epoch()
+                    self.add_epoch()
 
-        # save pre_train
-        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
+            # save pre_train
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train-0'))
 
         print('start adversarial:')
-        for _ in range(self.nadv_steps):
+        for _ in range(bae, self.nadv_steps):
 
             niter = self.sess.run(self.global_step)
             tic = time.time()

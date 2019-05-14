@@ -10,7 +10,7 @@
   "hidden_dim": 32,
   "start_token": 0,
   "gpre_lr": 1e-2,
-  "batch_size": 64,
+  "batch_size": 16,
   "num_rep": 64,
   "sn": false,
   "gan_type": "RSGAN",
@@ -30,5 +30,6 @@
   "temper": 1000,
   "adapt": "exp",
   "generated_num": 10000,
-  "gadv_lr": 1e-4
+  "gadv_lr": 1e-4,
+  "restore": false
 }
