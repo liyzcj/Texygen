@@ -65,18 +65,6 @@ class MRelgan(Gan):
         self.temp_var = tf.placeholder(tf.float32)
         self.update_temperature_op = temperature.assign(self.temp_var)
 
-        # Loss summaries
-        loss_summaries = [
-            tf.summary.scalar('loss/discriminator', d_loss),
-            tf.summary.scalar('loss/g_loss', g_loss),
-            tf.summary.scalar('loss/log_pg', log_pg),
-            tf.summary.scalar('loss/Wall_clock_time', Wall_clock_time),
-            tf.summary.scalar('loss/temperature', temperature),
-        ]
-        self.loss_summary_op = tf.summary.merge(loss_summaries)
-
-        # Metric Summaries
-        self.init_metric_summary_op()
 
         # dataloader
         gen_dataloader = RealDataLoader(
@@ -139,45 +127,6 @@ class MRelgan(Gan):
         self.generate_samples()
         self.get_real_test_file()
         scores = self.evaluate()
-        metrics_summary_str = self.sess.run(
-            self.metric_summary_op, feed_dict=dict(
-                zip(self.metrics_pl, scores))
-        )
-        self.sum_writer.add_summary(metrics_summary_str, self.epoch)
-
-    # A function to get the summary for each metric
-    def init_metric_summary_op(self):
-        metrics_pl = []
-        metrics_sum = []
-
-        if self.nll_gen:
-            nll_gen = tf.placeholder(tf.float32)
-            metrics_pl.append(nll_gen)
-            metrics_sum.append(tf.summary.scalar('metrics/nll_gen', nll_gen))
-
-        if self.doc_embsim:
-            doc_embsim = tf.placeholder(tf.float32)
-            metrics_pl.append(doc_embsim)
-            metrics_sum.append(tf.summary.scalar(
-                'metrics/doc_embsim', doc_embsim))
-
-        if self.bleu:
-            for i in range(3, 4):
-                temp_pl = tf.placeholder(tf.float32, name='bleu{}'.format(i))
-                metrics_pl.append(temp_pl)
-                metrics_sum.append(tf.summary.scalar(
-                    'metrics/bleu{}'.format(i), temp_pl))
-
-        if self.selfbleu:
-            for i in range(2, 6):
-                temp_pl = tf.placeholder(
-                    tf.float32, name='selfbleu{}'.format(i))
-                metrics_pl.append(temp_pl)
-                metrics_sum.append(tf.summary.scalar(
-                    'metrics/selfbleu{}'.format(i), temp_pl))
-
-        self.metric_summary_op = tf.summary.merge(metrics_sum)
-        self.metrics_pl = metrics_pl
 
     def train_real(self, data_loc=None):
         self.init_real_training(data_loc)
@@ -191,9 +140,6 @@ class MRelgan(Gan):
         saver_variables = tf.global_variables()
         saver = tf.train.Saver(saver_variables, max_to_keep=100)
 
-        # summary writer
-        self.sum_writer = tf.summary.FileWriter(
-            self.summary_path, self.sess.graph)
 
         # restore 
         if self.restore:
@@ -239,10 +185,8 @@ class MRelgan(Gan):
                 feed_dict={self.temp_var: temp_var_np})
 
             feed = {self.generator.x_real: self.gen_data_loader.random_batch()}
-            g_loss_np, d_loss_np, loss_summary_str = self.sess.run(
-                [self.generator.loss, self.discriminator.loss, self.loss_summary_op], feed_dict=feed)
-            # summary op
-            self.sum_writer.add_summary(loss_summary_str, niter)
+            g_loss_np, d_loss_np = self.sess.run(
+                [self.generator.loss, self.discriminator.loss], feed_dict=feed)
             # update global step
             self.sess.run(self.global_step_op)
 
