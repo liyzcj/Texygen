@@ -108,7 +108,7 @@ class MRelgan(Gan):
             doc_embsim.set_name('doc_embsim')
             self.add_metric(doc_embsim)
         if self.bleu:
-            for i in range(2, 6):
+            for i in range(3, 4):
                 bleu = Bleu(
                     test_text=self.test_file,
                     real_text='data/testdata/test_coco.txt', gram=i)
@@ -162,7 +162,7 @@ class MRelgan(Gan):
                 'metrics/doc_embsim', doc_embsim))
 
         if self.bleu:
-            for i in range(2, 6):
+            for i in range(3, 4):
                 temp_pl = tf.placeholder(tf.float32, name='bleu{}'.format(i))
                 metrics_pl.append(temp_pl)
                 metrics_sum.append(tf.summary.scalar(
