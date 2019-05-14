@@ -246,7 +246,7 @@ class MRelgan(Gan):
             # update global step
             self.sess.run(self.global_step_op)
 
-            print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}")
+            print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}  Time: {toc-tic:.1f}s")
 
             if np.mod(niter, self.ntest) == 0:
                 self.evaluate_sum()
