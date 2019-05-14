@@ -198,7 +198,7 @@ class MRelgan(Gan):
         print('start pre-train Relgan:')
         for epoch in range(self.npre_epochs // self.ntest_pre):
             self.evaluate_sum()
-            for _ in tqdm(range(self.ntest_pre), ncols=70):
+            for _ in tqdm(range(self.ntest_pre), ncols=50):
                 g_pretrain_loss_np = self.pre_train_epoch()
                 self.add_epoch()
 
