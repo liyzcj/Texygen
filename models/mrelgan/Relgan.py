@@ -211,7 +211,9 @@ class MRelgan(Gan):
 
             # save pre_train
             saver.save(self.sess, os.path.join(self.save_path, 'pre_train-0'))
-
+        if self.pretrain:
+            self.evaluate_sum()
+            exit()
         print('start adversarial:')
         for _ in range(bae, self.nadv_steps):
 
