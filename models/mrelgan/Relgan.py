@@ -24,10 +24,10 @@ class MRelgan(Gan):
         self.seq_len, self.vocab_size = text_precess(data_loc)
 
         # temperature variable
-        temperature = tf.Variable(1., trainable=False, name='temperature')
+        self.temperature = tf.Variable(1., trainable=False, name='temperature')
 
         generator = Generator(
-            temperature=temperature, vocab_size=self.vocab_size, batch_size=self.batch_size,
+            temperature=self.temperature, vocab_size=self.vocab_size, batch_size=self.batch_size,
             seq_len=self.seq_len, gen_emb_dim=self.gen_emb_dim, mem_slots=self.mem_slots,
             head_size=self.head_size, num_heads=self.num_heads, hidden_dim=self.hidden_dim,
             start_token=self.start_token, gpre_lr=self.gpre_lr, grad_clip=self.grad_clip)
@@ -57,14 +57,9 @@ class MRelgan(Gan):
             nadv_steps=self.nadv_steps, decay=self.decay
         )
 
-        # Record wall clock time
-        self.time_diff = tf.placeholder(tf.float32)
-        Wall_clock_time = tf.Variable(0., trainable=False)
-        self.update_Wall_op = Wall_clock_time.assign_add(self.time_diff)
-
         # Temperature placeholder
         self.temp_var = tf.placeholder(tf.float32)
-        self.update_temperature_op = temperature.assign(self.temp_var)
+        self.update_temperature_op = self.temperature.assign(self.temp_var)
 
 
         # dataloader
@@ -86,6 +81,10 @@ class MRelgan(Gan):
         from utils.metrics.DocEmbSim import DocEmbSim
         from utils.others.Bleu import Bleu
         from utils.metrics.SelfBleu import SelfBleu
+        from utils.metrics.Scalar import Scalar
+        # temperature
+        t = Scalar(self.sess, self.temperature, "Temperature")
+        self.add_metric(t)
 
         if self.nll_gen:
             nll_gen = Nll(self.gen_data_loader, self.generator, self.sess)
@@ -180,8 +179,6 @@ class MRelgan(Gan):
                     feed_dict={self.generator.x_real: self.gen_data_loader.random_batch()})
 
             toc = time.time()
-            # update time clock
-            self.sess.run(self.update_Wall_op, feed_dict={self.time_diff: toc-tic})
 
             # temperature
             temp_var_np = get_fixed_temperature(self.temper, niter, self.nadv_steps, self.adapt)
@@ -195,7 +192,7 @@ class MRelgan(Gan):
             # update global step
             self.sess.run(self.global_step_op)
 
-            print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}  Time: {toc-tic:.1f}s")
+            # print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}  Time: {toc-tic:.1f}s")
 
             if np.mod(niter, self.ntest) == 0:
                 self.evaluate_sum()
