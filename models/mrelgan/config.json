@@ -18,7 +18,7 @@
   "gan_type": "RSGAN",
   "optimizer_name": "adam",
   "npre_epochs": 150,
-  "ntest_pre": 10,
+  "ntest_pre": 50,
   "nadv_steps": 1000,
   "ntest": 10,
   "gsteps": 1,
@@ -32,5 +32,5 @@
   "selfbleu": false,
   "batch_size": 64,
   "restore": false,
-  "pretrain": true
+  "pretrain": false
 }

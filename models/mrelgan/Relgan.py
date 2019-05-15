@@ -140,12 +140,16 @@ class MRelgan(Gan):
         saver_variables = tf.global_variables()
         saver = tf.train.Saver(saver_variables, max_to_keep=100)
 
+        # summary writer
+        self.sum_writer = tf.summary.FileWriter(
+            self.summary_path, self.sess.graph)
 
         # restore 
         if self.restore:
             restore_from = tf.train.latest_checkpoint(self.save_path)
             bae = int(restore_from.split('-')[-1])
             saver.restore(self.sess, restore_from)
+            print(f"Restore from : {restore_from}")
         else:
             bae = 0
             print('start pre-train Relgan:')

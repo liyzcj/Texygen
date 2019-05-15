@@ -16,8 +16,7 @@ class Discriminator(Dis):
         self.sn = sn
         self.grad_clip = grad_clip
         self.get_logits = tf.make_template('discriminator', self.logits)
-        self.splited_steps = [10,20,30]
-        self.pad_value = 4682
+        self.splited_steps = [19]
 
     def logits(self, x_onehot):
         batch_size = self.batch_size
@@ -31,12 +30,13 @@ class Discriminator(Dis):
             splited_out = []
             for length in self.splited_steps:
                 W = np.zeros([batch_size, seq_len, vocab_size])
-                b = np.zeros([batch_size, seq_len, vocab_size])
+                # b = np.zeros([batch_size, seq_len, vocab_size])
                 W[:, 0:length, :] = 1
-                b[:, length:, :] = self.pad_value
+                # b[:, length:, :] = self.pad_value
                 W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
-                b = tf.constant(b, dtype=tf.float32, name=f"b{length}")
-                result = x_onehot * W + b
+                # b = tf.constant(b, dtype=tf.float32, name=f"b{length}")
+                # result = x_onehot * W + b
+                result = x_onehot * W
                 splited_out.append(result)
             splited_out.append(x_onehot)
             
