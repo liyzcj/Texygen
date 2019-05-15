@@ -32,5 +32,6 @@
   "selfbleu": false,
   "batch_size": 64,
   "restore": false,
-  "pretrain": false
+  "pretrain": false,
+  "splited_steps": [19, 37]
 }

@@ -35,7 +35,8 @@ class MRelgan(Gan):
 
         discriminator = Discriminator(
             batch_size=self.batch_size, seq_len=self.seq_len, vocab_size=self.vocab_size,
-            dis_emb_dim=self.dis_emb_dim, num_rep=self.num_rep, sn=self.sn, grad_clip=self.grad_clip
+            dis_emb_dim=self.dis_emb_dim, num_rep=self.num_rep, sn=self.sn, grad_clip=self.grad_clip,
+            splited_steps=self.splited_steps
         )
         self.set_discriminator(discriminator)
 

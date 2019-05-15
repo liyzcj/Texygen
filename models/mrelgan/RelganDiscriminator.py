@@ -7,7 +7,7 @@ from utils.ops import create_linear_initializer, conv2d, highway, linear
 
 class Discriminator(Dis):
 
-    def __init__(self, batch_size, seq_len, vocab_size, dis_emb_dim, num_rep, sn, grad_clip):
+    def __init__(self, batch_size, seq_len, vocab_size, dis_emb_dim, num_rep, sn, grad_clip, splited_steps):
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.vocab_size = vocab_size
@@ -16,7 +16,7 @@ class Discriminator(Dis):
         self.sn = sn
         self.grad_clip = grad_clip
         self.get_logits = tf.make_template('discriminator', self.logits)
-        self.splited_steps = [19]
+        self.splited_steps = splited_steps
 
     def logits(self, x_onehot):
         batch_size = self.batch_size
@@ -25,23 +25,6 @@ class Discriminator(Dis):
         dis_emb_dim = self.dis_emb_dim
         num_rep = self.num_rep
         sn = self.sn
-        # Mycode : split sentences
-        with tf.name_scope("spliter"):
-            splited_out = []
-            for length in self.splited_steps:
-                W = np.zeros([batch_size, seq_len, vocab_size])
-                # b = np.zeros([batch_size, seq_len, vocab_size])
-                W[:, 0:length, :] = 1
-                # b[:, length:, :] = self.pad_value
-                W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
-                # b = tf.constant(b, dtype=tf.float32, name=f"b{length}")
-                # result = x_onehot * W + b
-                result = x_onehot * W
-                splited_out.append(result)
-            splited_out.append(x_onehot)
-            
-            x_onehot_split = tf.concat(splited_out, 0)
-        
 
         # get the embedding dimension for each presentation
         emb_dim_single = int(dis_emb_dim / num_rep)
@@ -53,13 +36,25 @@ class Discriminator(Dis):
 
         d_embeddings = tf.get_variable('d_emb', shape=[vocab_size, dis_emb_dim],
                                        initializer=create_linear_initializer(vocab_size))
-        input_x_re = tf.reshape(x_onehot_split, [-1, vocab_size])
+        input_x_re = tf.reshape(x_onehot, [-1, vocab_size])
         emb_x_re = tf.matmul(input_x_re, d_embeddings)
         # batch_size x seq_len x dis_emb_dim
-        emb_x = tf.reshape(emb_x_re, [batch_size*(len(self.splited_steps)+1), seq_len, dis_emb_dim])
+        emb_x = tf.reshape(emb_x_re, [batch_size, seq_len, dis_emb_dim])
+
+        # Mycode : split sentences
+        with tf.name_scope("spliter"):
+            splited_out = []
+            for length in self.splited_steps:
+                W = np.zeros([1, seq_len, 1])
+                W[0, 0:length, 0] = 1
+                W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
+                result = emb_x * W
+                splited_out.append(result)
+            
+            emb_x_split = tf.concat(splited_out, 0)
 
         # batch_size x seq_len x dis_emb_dim x 1
-        emb_x_expanded = tf.expand_dims(emb_x, -1)
+        emb_x_expanded = tf.expand_dims(emb_x_split, -1)
         # print('shape of emb_x_expanded: {}'.format(
         #     emb_x_expanded.get_shape().as_list()))
 
