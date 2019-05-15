@@ -56,7 +56,7 @@ class Discriminator(Dis):
         input_x_re = tf.reshape(x_onehot_split, [-1, vocab_size])
         emb_x_re = tf.matmul(input_x_re, d_embeddings)
         # batch_size x seq_len x dis_emb_dim
-        emb_x = tf.reshape(emb_x_re, [batch_size*4, seq_len, dis_emb_dim])
+        emb_x = tf.reshape(emb_x_re, [batch_size*2, seq_len, dis_emb_dim])
 
         # batch_size x seq_len x dis_emb_dim x 1
         emb_x_expanded = tf.expand_dims(emb_x, -1)
