@@ -139,7 +139,7 @@ class PRelgan(Gan):
 
         # Saver
         saver_variables = tf.global_variables()
-        saver = tf.train.Saver(saver_variables, max_to_keep=100)
+        saver = tf.train.Saver(saver_variables)
 
         # summary writer
         self.sum_writer = tf.summary.FileWriter(
