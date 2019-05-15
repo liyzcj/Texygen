@@ -83,7 +83,7 @@ class MRelgan(Gan):
 
         from utils.metrics.Nll import Nll
         from utils.metrics.DocEmbSim import DocEmbSim
-        from models.mrelgan.Bleu import Bleu
+        from utils.others.Bleu import Bleu
         from utils.metrics.SelfBleu import SelfBleu
 
         if self.nll_gen:

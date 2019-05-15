@@ -95,7 +95,7 @@ class Relgan(Gan):
 
         from utils.metrics.Nll import Nll
         from utils.metrics.DocEmbSim import DocEmbSim
-        from utils.metrics.Bleu import Bleu
+        from utils.others.Bleu import Bleu
         from utils.metrics.SelfBleu import SelfBleu
 
         if self.nll_gen:
