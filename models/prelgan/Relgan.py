@@ -17,10 +17,8 @@ class PRelgan(Gan):
     def __init__(self):
         super().__init__()
 
-    def init_real_training(self, data_loc=None):
+    def init_real_training(self, data_loc):
 
-        if data_loc is None:
-            data_loc = 'data/image_coco.txt'
         self.seq_len, self.vocab_size = text_precess(data_loc)
 
         # temperature variable
@@ -69,11 +67,8 @@ class PRelgan(Gan):
         self.set_data_loader(gen_loader=gen_dataloader,
                              dis_loader=None, oracle_loader=None)
         tokens = get_tokenlized(data_loc)
-        word_set = get_word_list(tokens)
-        [word_index_dict, index_word_dict] = get_dict(word_set)
         with open(self.oracle_file, 'w') as outfile:
-            outfile.write(text_to_code(tokens, word_index_dict, self.seq_len))
-        self.iw_dict = index_word_dict
+            outfile.write(text_to_code(tokens, self.wi_dict, self.seq_len))
 
     def init_real_metric(self):
 

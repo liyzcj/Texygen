@@ -20,6 +20,7 @@ from models.mrelgan.Relgan import MRelgan
 from models.prelgan.Relgan import PRelgan
 
 from utils.config import Config
+from utils.text_process import save_dict_file, get_dict_from_vocab
 
 gans = {
     'seqgan': Seqgan,
@@ -73,8 +74,8 @@ def def_flags():
     flags.DEFINE_enum('gan', 'mle', list(gans.keys()),
                       'Type of GAN to Training')
     flags.DEFINE_enum('mode', 'real', training_mode, 'Type of training mode')
-    flags.DEFINE_string('data', 'data/image_coco.txt',
-                        'Data for real Training')
+    flags.DEFINE_string('data', 'image_coco',
+                        'Dataset for real Training')
     flags.DEFINE_boolean('restore', False, 'Restore models for LeakGAN')
     flags.DEFINE_string('model', "test", 'Experiment name for LeakGan')
     flags.DEFINE_integer('gpu', 0, 'The GPU used for training')
@@ -133,9 +134,18 @@ def main(args):
     if not os.path.exists(gan.summary_path):
         os.mkdir(gan.summary_path)
 
+    # preprocess real data
+    data_file = f"data/{FLAGS.data}.txt"
+    vocab_file = f"data/vocab/{FLAGS.data}.vocab.pkl"
+
+    if not os.path.exists(vocab_file):
+        save_dict_file(data_file, vocab_file)
+    gan.wi_dict, gan.iw_dict = get_dict_from_vocab(vocab_file)
+
+
     train_f = set_training(gan, FLAGS.mode)
     if FLAGS.mode == 'real':
-        train_f(FLAGS.data)
+        train_f(data_file)
     else:
         train_f()
 

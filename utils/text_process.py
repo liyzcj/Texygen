@@ -1,5 +1,6 @@
 # coding=utf-8
 import nltk
+import pickle
 
 
 def chinese_process(filein, fileout):
@@ -71,6 +72,20 @@ def get_dict(word_set):
         index += 1
     return word_index_dict, index_word_dict
 
+def save_dict_file(data_file, vocab_file):
+    tokens = get_tokenlized(data_file)
+    word_list = get_word_list(tokens)
+    wi_dict, iw_dict = get_dict(word_list)
+    with open(vocab_file, 'wb') as out:
+        pickle.dump((wi_dict, iw_dict), out)
+
+def get_dict_from_vocab(vocab_file):
+
+    with open(vocab_file, 'rb')  as inf:
+        wi_dict, iw_dict = pickle.load(inf)
+
+    return wi_dict, iw_dict
+    
 def text_precess(train_text_loc, test_text_loc=None):
     train_tokens = get_tokenlized(train_text_loc)
     if test_text_loc is None:

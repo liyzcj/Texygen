@@ -25,6 +25,9 @@ class Gan(metaclass=ABCMeta):
         self.output_path = None
         self.save_path = None
         self.summary_path = None
+        # dict
+        self.wi_dict = None
+        self.iw_dict = None
 
     def set_config(self, config):
         self.__dict__.update(config.dict)
