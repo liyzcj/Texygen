@@ -198,10 +198,10 @@ class MRelgan(Gan):
         with open(self.generator_file, 'r') as file:
             codes = get_tokenlized(self.generator_file)
         output = code_to_text(codes=codes, dictionary=self.iw_dict)
-        with open(self.test_file, 'w') as outfile:
+        with open(self.test_file, 'w', encoding='utf-8') as outfile:
             outfile.write(output)
         output_file = os.path.join(self.output_path, f"epoch_{self.epoch}.txt")
-        with open(output_file, 'w') as of:
+        with open(output_file, 'w', encoding='utf-8') as of:
             of.write(output)
 
     def pre_train_epoch(self):
