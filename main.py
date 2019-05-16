@@ -76,7 +76,8 @@ def def_flags():
     flags.DEFINE_enum('mode', 'real', training_mode, 'Type of training mode')
     flags.DEFINE_string('data', 'image_coco',
                         'Dataset for real Training')
-    flags.DEFINE_boolean('restore', False, 'Restore models for LeakGAN')
+    flags.DEFINE_boolean('restore', False, 'Restore pretrain models for relgan')
+    flags.DEFINE_boolean('pretrain', False, 'only pretrain, Stop after pretrain!')
     flags.DEFINE_string('model', "test", 'Experiment name for LeakGan')
     flags.DEFINE_integer('gpu', 0, 'The GPU used for training')
     return
@@ -102,7 +103,7 @@ def main(args):
     # Log file
     gan.log = os.path.join(
         experiment_path, f'experiment-log-{FLAGS.gan}-{FLAGS.mode}.csv')
-    if os.path.exists(gan.log):
+    if os.path.exists(gan.log) and not FLAGS.restore:
         print(f"{Fore.RED}[Error], Log file exist!{Fore.RESET}")
         exit(-3)
 
@@ -126,6 +127,8 @@ def main(args):
 
     # save path
     gan.save_path = os.path.join(experiment_path, 'ckpts')
+    gan.restore = FLAGS.restore
+    gan.pretrain = FLAGS.pretrain
     if not os.path.exists(gan.save_path):
         os.mkdir(gan.save_path)
 

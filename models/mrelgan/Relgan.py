@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 import time
+from colorama import Fore
 
 from models.Gan import Gan
 from models.mrelgan.RelganGenerator import Generator
@@ -142,9 +143,8 @@ class MRelgan(Gan):
         # restore 
         if self.restore:
             restore_from = tf.train.latest_checkpoint(self.save_path)
-            bae = int(restore_from.split('-')[-1])
             saver.restore(self.sess, restore_from)
-            print(f"Restore from : {restore_from}")
+            print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
         else:
             bae = 0
             print('start pre-train Relgan:')
@@ -160,7 +160,7 @@ class MRelgan(Gan):
             self.evaluate_sum()
             exit()
         print('start adversarial:')
-        for _ in range(bae, self.nadv_steps):
+        for _ in range(self.nadv_steps):
 
             niter = self.sess.run(self.global_step)
             tic = time.time()
@@ -191,7 +191,6 @@ class MRelgan(Gan):
 
             if np.mod(niter, self.ntest) == 0:
                 self.evaluate_sum()
-                saver.save(self.sess, os.path.join(self.save_path, 'adv_train'), global_step=niter)
             self.add_epoch()
 
     def get_real_test_file(self):
