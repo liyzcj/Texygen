@@ -145,6 +145,7 @@ class MRelgan(Gan):
             restore_from = tf.train.latest_checkpoint(self.save_path)
             saver.restore(self.sess, restore_from)
             print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
+            self.epoch = self.npre_epochs
         else:
             bae = 0
             print('start pre-train Relgan:')
