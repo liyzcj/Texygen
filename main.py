@@ -102,7 +102,7 @@ def main(args):
 
     # Log file
     gan.log = os.path.join(
-        experiment_path, f'experiment-log-{FLAGS.gan}-{FLAGS.mode}.csv')
+        experiment_path, f'log-{FLAGS.model}.csv')
     if os.path.exists(gan.log) and not FLAGS.restore:
         print(f"{Fore.RED}[Error], Log file exist!{Fore.RESET}")
         exit(-3)
