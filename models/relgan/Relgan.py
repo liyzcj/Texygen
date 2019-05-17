@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 import time
+from colorama import Fore
 
 from models.Gan import Gan
 from models.relgan.RelganGenerator import Generator
