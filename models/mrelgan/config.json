@@ -18,7 +18,7 @@
   "gan_type": "RSGAN",
   "optimizer_name": "adam",
   "npre_epochs": 150,
-  "ntest_pre": 50,
+  "ntest_pre": 150,
   "nadv_steps": 1000,
   "ntest": 10,
   "gsteps": 1,
