@@ -17,17 +17,15 @@ class Relgan(Gan):
     def __init__(self):
         super().__init__()
 
-    def init_real_training(self, data_loc=None):
+    def init_real_training(self, data_loc):
 
-        if data_loc is None:
-            data_loc = 'data/image_coco.txt'
         self.seq_len, self.vocab_size = text_precess(data_loc)
 
         # temperature variable
-        temperature = tf.Variable(1., trainable=False, name='temperature')
+        self.temperature = tf.Variable(1., trainable=False, name='temperature')
 
         generator = Generator(
-            temperature=temperature, vocab_size=self.vocab_size, batch_size=self.batch_size,
+            temperature=self.temperature, vocab_size=self.vocab_size, batch_size=self.batch_size,
             seq_len=self.seq_len, gen_emb_dim=self.gen_emb_dim, mem_slots=self.mem_slots,
             head_size=self.head_size, num_heads=self.num_heads, hidden_dim=self.hidden_dim,
             start_token=self.start_token, gpre_lr=self.gpre_lr, grad_clip=self.grad_clip)
@@ -56,27 +54,10 @@ class Relgan(Gan):
             nadv_steps=self.nadv_steps, decay=self.decay
         )
 
-        # Record wall clock time
-        self.time_diff = tf.placeholder(tf.float32)
-        Wall_clock_time = tf.Variable(0., trainable=False)
-        self.update_Wall_op = Wall_clock_time.assign_add(self.time_diff)
-
         # Temperature placeholder
         self.temp_var = tf.placeholder(tf.float32)
-        self.update_temperature_op = temperature.assign(self.temp_var)
+        self.update_temperature_op = self.temperature.assign(self.temp_var)
 
-        # Loss summaries
-        loss_summaries = [
-            tf.summary.scalar('loss/discriminator', d_loss),
-            tf.summary.scalar('loss/g_loss', g_loss),
-            tf.summary.scalar('loss/log_pg', log_pg),
-            tf.summary.scalar('loss/Wall_clock_time', Wall_clock_time),
-            tf.summary.scalar('loss/temperature', temperature),
-        ]
-        self.loss_summary_op = tf.summary.merge(loss_summaries)
-
-        # Metric Summaries
-        self.init_metric_summary_op()
 
         # dataloader
         gen_dataloader = RealDataLoader(
@@ -85,11 +66,8 @@ class Relgan(Gan):
         self.set_data_loader(gen_loader=gen_dataloader,
                              dis_loader=None, oracle_loader=None)
         tokens = get_tokenlized(data_loc)
-        word_set = get_word_list(tokens)
-        [word_index_dict, index_word_dict] = get_dict(word_set)
         with open(self.oracle_file, 'w') as outfile:
-            outfile.write(text_to_code(tokens, word_index_dict, self.seq_len))
-        self.iw_dict = index_word_dict
+            outfile.write(text_to_code(tokens, self.wi_dict, self.seq_len))
 
     def init_real_metric(self):
 
@@ -97,6 +75,10 @@ class Relgan(Gan):
         from utils.metrics.DocEmbSim import DocEmbSim
         from utils.others.Bleu import Bleu
         from utils.metrics.SelfBleu import SelfBleu
+        from utils.metrics.Scalar import Scalar
+        # temperature
+        t = Scalar(self.sess, self.temperature, "Temperature")
+        self.add_metric(t)
 
         if self.nll_gen:
             nll_gen = Nll(self.gen_data_loader, self.generator, self.sess)
@@ -108,7 +90,7 @@ class Relgan(Gan):
             doc_embsim.set_name('doc_embsim')
             self.add_metric(doc_embsim)
         if self.bleu:
-            for i in range(2, 6):
+            for i in range(3, 4):
                 bleu = Bleu(
                     test_text=self.test_file,
                     real_text='data/testdata/test_coco.txt', gram=i)
@@ -139,45 +121,6 @@ class Relgan(Gan):
         self.generate_samples()
         self.get_real_test_file()
         scores = self.evaluate()
-        metrics_summary_str = self.sess.run(
-            self.metric_summary_op, feed_dict=dict(
-                zip(self.metrics_pl, scores))
-        )
-        self.sum_writer.add_summary(metrics_summary_str, self.epoch)
-
-    # A function to get the summary for each metric
-    def init_metric_summary_op(self):
-        metrics_pl = []
-        metrics_sum = []
-
-        if self.nll_gen:
-            nll_gen = tf.placeholder(tf.float32)
-            metrics_pl.append(nll_gen)
-            metrics_sum.append(tf.summary.scalar('metrics/nll_gen', nll_gen))
-
-        if self.doc_embsim:
-            doc_embsim = tf.placeholder(tf.float32)
-            metrics_pl.append(doc_embsim)
-            metrics_sum.append(tf.summary.scalar(
-                'metrics/doc_embsim', doc_embsim))
-
-        if self.bleu:
-            for i in range(2, 6):
-                temp_pl = tf.placeholder(tf.float32, name='bleu{}'.format(i))
-                metrics_pl.append(temp_pl)
-                metrics_sum.append(tf.summary.scalar(
-                    'metrics/bleu{}'.format(i), temp_pl))
-
-        if self.selfbleu:
-            for i in range(2, 6):
-                temp_pl = tf.placeholder(
-                    tf.float32, name='selfbleu{}'.format(i))
-                metrics_pl.append(temp_pl)
-                metrics_sum.append(tf.summary.scalar(
-                    'metrics/selfbleu{}'.format(i), temp_pl))
-
-        self.metric_summary_op = tf.summary.merge(metrics_sum)
-        self.metrics_pl = metrics_pl
 
     def train_real(self, data_loc=None):
         self.init_real_training(data_loc)
@@ -194,17 +137,26 @@ class Relgan(Gan):
         # summary writer
         self.sum_writer = tf.summary.FileWriter(
             self.summary_path, self.sess.graph)
+        
+        # restore 
+        if self.restore:
+            restore_from = tf.train.latest_checkpoint(self.save_path)
+            saver.restore(self.sess, restore_from)
+            print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
+            self.epoch = self.npre_epochs
+        else:
+            print('start pre-train Relgan:')
+            for epoch in range(self.npre_epochs // self.ntest_pre):
+                self.evaluate_sum()
+                for _ in tqdm(range(self.ntest_pre), ncols=50):
+                    g_pretrain_loss_np = self.pre_train_epoch()
+                    self.add_epoch()
 
-        print('start pre-train Relgan:')
-        for epoch in range(self.npre_epochs // self.ntest_pre):
+            # save pre_train
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train-0'))
+        if self.pretrain:
             self.evaluate_sum()
-            for _ in tqdm(range(self.ntest_pre), ncols=70):
-                g_pretrain_loss_np = self.pre_train_epoch()
-                self.add_epoch()
-
-        # save pre_train
-        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
-
+            exit() 
         print('start adversarial:')
         for _ in range(self.nadv_steps):
 
@@ -220,8 +172,6 @@ class Relgan(Gan):
                     feed_dict={self.generator.x_real: self.gen_data_loader.random_batch()})
 
             toc = time.time()
-            # update time clock
-            self.sess.run(self.update_Wall_op, feed_dict={self.time_diff: toc-tic})
 
             # temperature
             temp_var_np = get_fixed_temperature(self.temper, niter, self.nadv_steps, self.adapt)
@@ -230,28 +180,25 @@ class Relgan(Gan):
                 feed_dict={self.temp_var: temp_var_np})
 
             feed = {self.generator.x_real: self.gen_data_loader.random_batch()}
-            g_loss_np, d_loss_np, loss_summary_str = self.sess.run(
-                [self.generator.loss, self.discriminator.loss, self.loss_summary_op], feed_dict=feed)
-            # summary op
-            self.sum_writer.add_summary(loss_summary_str, niter)
+            g_loss_np, d_loss_np = self.sess.run(
+                [self.generator.loss, self.discriminator.loss], feed_dict=feed)
             # update global step
             self.sess.run(self.global_step_op)
 
-            print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}")
+            # print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}  Time: {toc-tic:.1f}s")
 
             if np.mod(niter, self.ntest) == 0:
                 self.evaluate_sum()
-                saver.save(self.sess, os.path.join(self.save_path, 'adv_train'), global_step=niter)
             self.add_epoch()
 
     def get_real_test_file(self):
         with open(self.generator_file, 'r') as file:
             codes = get_tokenlized(self.generator_file)
         output = code_to_text(codes=codes, dictionary=self.iw_dict)
-        with open(self.test_file, 'w') as outfile:
+        with open(self.test_file, 'w', encoding='utf-8') as outfile:
             outfile.write(output)
         output_file = os.path.join(self.output_path, f"epoch_{self.epoch}.txt")
-        with open(output_file, 'w') as of:
+        with open(output_file, 'w', encoding='utf-8') as of:
             of.write(output)
 
     def pre_train_epoch(self):
