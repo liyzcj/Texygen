@@ -413,7 +413,6 @@ class Leakgan(Gan):
             exit()
             
         print('start adversarial:')
-        self.reset_epoch()
         self.reward = Reward(model=self.generator, dis=self.discriminator, sess=self.sess, rollout_num=4)
         for epoch in range(self.adversarial_epoch_num // 10):
             for epoch_ in range(10):

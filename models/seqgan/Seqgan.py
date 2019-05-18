@@ -13,6 +13,7 @@ from utils.oracle.OracleCfg import OracleCfg
 from utils.oracle.OracleLstm import OracleLstm
 from utils.text_process import *
 from utils.utils import *
+from colorama import Fore
 
 
 class Seqgan(Gan):
@@ -32,7 +33,7 @@ class Seqgan(Gan):
         self.add_metric(docsim)
 
     def train_discriminator(self):
-        generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+        self.generate_samples()
         self.dis_data_loader.load_train_data(self.oracle_file, self.generator_file)
         for _ in range(3):
             self.dis_data_loader.next_batch()
@@ -42,7 +43,6 @@ class Seqgan(Gan):
                 self.discriminator.input_y: y_batch,
             }
             loss,_ = self.sess.run([self.discriminator.d_loss, self.discriminator.train_op], feed)
-            print(loss)
 
     def init_oracle_trainng(self, oracle=None):
         if oracle is None:
@@ -245,33 +245,16 @@ class Seqgan(Gan):
 
         self.set_data_loader(gen_loader=gen_dataloader, dis_loader=dis_dataloader, oracle_loader=oracle_dataloader)
         tokens = get_tokenlized(data_loc)
-        word_set = get_word_list(tokens)
-        [word_index_dict, index_word_dict] = get_dict(word_set)
         with open(self.oracle_file, 'w') as outfile:
-            outfile.write(text_to_code(tokens, word_index_dict, self.sequence_length))
-        return word_index_dict, index_word_dict
-
-    def init_real_metric(self):
-        from utils.metrics.DocEmbSim import DocEmbSim
-        docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
-        self.add_metric(docsim)
-
-        inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
-        inll.set_name('nll-test')
-        self.add_metric(inll)
-
+            outfile.write(text_to_code(tokens, self.wi_dict, self.sequence_length))
 
     def train_real(self, data_loc=None):
         from utils.text_process import code_to_text
         from utils.text_process import get_tokenlized
-        wi_dict, iw_dict = self.init_real_trainng(data_loc)
+        self.init_real_trainng(data_loc)
         self.init_real_metric()
 
-        def get_real_test_file(dict=iw_dict):
-            with open(self.generator_file, 'r') as file:
-                codes = get_tokenlized(self.generator_file)
-            with open(self.test_file, 'w') as outfile:
-                outfile.write(code_to_text(codes=codes, dictionary=dict))
+        self.gen_data_loader.create_batches(self.oracle_file)
 
         self.sess.run(tf.global_variables_initializer())
 
@@ -281,35 +264,38 @@ class Seqgan(Gan):
         #++ ====================
 
         # summary writer
-        self.sum_writer = tf.summary.FileWriter(
-            self.summary_path, self.sess.graph)
+        self.save_summary()
 
+        if self.restore:
+            restore_from = tf.train.latest_checkpoint(self.save_path)
+            saver.restore(self.sess, restore_from)
+            print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
+            self.epoch = self.pre_epoch_num
+        else:
+            print('start pre-train generator:')
+            for epoch in range(self.pre_epoch_num):
+                start = time()
+                loss = pre_train_epoch(self.sess, self.generator, self.gen_data_loader)
+                end = time()
+                print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
+                self.add_epoch()
+                if epoch % self.ntest_pre == 0:
+                    self.evaluate_real()
 
-        generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-        self.gen_data_loader.create_batches(self.oracle_file)
+            print('start pre-train discriminator:')
+            self.reset_epoch()
+            for epoch in range(self.pre_epoch_num):
+                print('epoch:' + str(epoch))
+                self.train_discriminator()
 
-        print('start pre-train generator:')
-        for epoch in range(self.pre_epoch_num):
-            start = time()
-            loss = pre_train_epoch(self.sess, self.generator, self.gen_data_loader)
-            end = time()
-            print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
-            self.add_epoch()
-            if epoch % 5 == 0:
-                generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-                get_real_test_file()
-                self.evaluate()
+            # save pre_train
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
-        print('start pre-train discriminator:')
-        self.reset_epoch()
-        for epoch in range(self.pre_epoch_num):
-            print('epoch:' + str(epoch))
-            self.train_discriminator()
+        # stop after pretrain
+        if self.pretrain:
+            self.evaluate_real()
+            exit()
 
-        # save pre_train
-        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
-
-        self.reset_epoch()
         print('adversarial training:')
         self.reward = Reward(self.generator, .8)
         for epoch in range(self.adversarial_epoch_num):
@@ -323,14 +309,11 @@ class Seqgan(Gan):
                     self.generator.rewards: rewards
                 }
                 loss, _ = self.sess.run([self.generator.g_loss, self.generator.g_updates], feed_dict=feed)
-                print(loss)
             end = time()
             self.add_epoch()
             print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
-            if epoch % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
-                generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-                get_real_test_file()
-                self.evaluate()
+            if epoch % self.ntest == 0 or epoch == self.adversarial_epoch_num - 1:
+                self.evaluate_real()
 
             self.reward.update_params()
             for _ in range(15):
