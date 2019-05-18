@@ -59,7 +59,7 @@ def highway(input_, size, num_layers=1, bias=-2.0, f=tf.nn.relu, scope='Highway'
 
 class Discriminator(Dis):
     def __init__(self, sequence_length, num_classes, vocab_size,dis_emb_dim,filter_sizes, num_filters,batch_size,hidden_dim,
-                 start_token,goal_out_size,step_size,l2_reg_lambda=0.0, dropout_keep_prob=0.75):
+                 start_token,goal_out_size,step_size,splited_steps, l2_reg_lambda=0.0, dropout_keep_prob=0.75):
         self.sequence_length = sequence_length
         self.num_classes = num_classes
         self.vocab_size = vocab_size
@@ -76,6 +76,7 @@ class Discriminator(Dis):
         self.goal_out_size = goal_out_size
         self.step_size = step_size
         self.dropout_keep_prob = dropout_keep_prob
+        self.splited_steps = splited_steps
 
         self.D_input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
         self.D_input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
@@ -113,7 +114,20 @@ class Discriminator(Dis):
                         initializer=tf.random_uniform([self.vocab_size + 1, self.dis_emb_dim], -1.0, 1.0))
                     # scope.reuse_variables()
                     embedded_chars = tf.nn.embedding_lookup(W_fe, Feature_input + 1)
-                    embedded_chars_expanded = tf.expand_dims(embedded_chars, -1)
+
+                # Mycode : split sentences
+                with tf.name_scope("spliter"):
+                    splited_out = []
+                    for length in self.splited_steps:
+                        W = np.zeros([1, self.sequence_length, 1])
+                        W[0, 0:length, 0] = 1
+                        W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
+                        result = embedded_chars * W
+                        splited_out.append(result)
+                    
+                    emb_x_split = tf.concat(splited_out, 0)
+
+                embedded_chars_expanded = tf.expand_dims(emb_x_split, -1)
 
                 # Create a convolution + maxpool layer for each filter size
                 pooled_outputs = []
@@ -154,7 +168,10 @@ class Discriminator(Dis):
                     # Add dropout
                 with tf.name_scope("dropout"):
                     h_drop = tf.nn.dropout(h_highway,dropout_keep_prob)
-
+                ## my split
+                h_drop = tf.reshape(h_drop, [len(self.splited_steps), -1, self.num_filters_total])
+                h_drop = tf.reduce_mean(h_drop, axis=0)
+                # ====
             return h_drop
 
         return unit

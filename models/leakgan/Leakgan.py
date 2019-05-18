@@ -336,7 +336,8 @@ class Leakgan(Gan):
                                       batch_size=self.batch_size, hidden_dim=self.hidden_dim,
                                       start_token=self.start_token,
                                       goal_out_size=goal_out_size, step_size=4,
-                                      l2_reg_lambda=self.l2_reg_lambda)
+                                      l2_reg_lambda=self.l2_reg_lambda,
+                                      splited_steps=self.splited_steps)
         self.set_discriminator(discriminator)
 
         generator = Generator(num_classes=2, num_vocabulary=self.vocab_size, batch_size=self.batch_size,
