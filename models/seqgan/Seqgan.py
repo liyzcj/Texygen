@@ -236,7 +236,7 @@ class Seqgan(Gan):
 
         discriminator = Discriminator(sequence_length=self.sequence_length, num_classes=2, vocab_size=self.vocab_size,
                                       emd_dim=self.emb_dim, filter_sizes=self.filter_size, num_filters=self.num_filters,
-                                      l2_reg_lambda=self.l2_reg_lambda)
+                                      l2_reg_lambda=self.l2_reg_lambda, splited_steps=self.splited_steps)
         self.set_discriminator(discriminator)
 
         gen_dataloader = DataLoader(batch_size=self.batch_size, seq_length=self.sequence_length)

@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import numpy as np
 
 def linear(input_, output_size, scope=None):
     '''
@@ -57,11 +57,13 @@ class Discriminator(object):
 
     def __init__(
             self, sequence_length, num_classes, vocab_size,
-            emd_dim, filter_sizes, num_filters, l2_reg_lambda=0.0, dropout_keep_prob = 1):
+            emd_dim, filter_sizes, num_filters, splited_steps, l2_reg_lambda=0.0, dropout_keep_prob = 1,
+            ):
         # Placeholders for input, output and dropout
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
         self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
         self.dropout_keep_prob = dropout_keep_prob
+        self.splited_steps = splited_steps
         # self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
         # Keeping track of l2 regularization loss (optional)
@@ -74,8 +76,20 @@ class Discriminator(object):
                     tf.random_uniform([vocab_size, emd_dim], -1.0, 1.0),
                     name="W")
                 self.embedded_chars = tf.nn.embedding_lookup(self.W, self.input_x)
-                self.embedded_chars_expanded = tf.expand_dims(self.embedded_chars, -1)
+                
+            # Mycode : split sentences
+            with tf.name_scope("spliter"):
+                splited_out = []
+                for length in self.splited_steps:
+                    W = np.zeros([1, sequence_length, 1])
+                    W[0, 0:length, 0] = 1
+                    W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
+                    result = self.embedded_chars * W
+                    splited_out.append(result)
+                
+                emb_x_split = tf.concat(splited_out, 0)
 
+            self.embedded_chars_expanded = tf.expand_dims(emb_x_split, -1)
             # Create a convolution + maxpool layer for each filter size
             pooled_outputs = []
             for filter_size, num_filter in zip(filter_sizes, num_filters):
