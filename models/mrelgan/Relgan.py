@@ -84,8 +84,7 @@ class MRelgan(Gan):
         saver = tf.train.Saver(saver_variables)
 
         # summary writer
-        self.sum_writer = tf.summary.FileWriter(
-            self.summary_path, self.sess.graph)
+        self.save_summary()
 
         # restore 
         if self.restore:

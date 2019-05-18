@@ -4,6 +4,7 @@ from utils.utils import init_sess
 from utils.text_process import code_to_text, get_tokenlized
 import os
 import numpy as np
+import tensorflow as tf
 
 class Gan(metaclass=ABCMeta):
 
@@ -163,6 +164,12 @@ class Gan(metaclass=ABCMeta):
                 selfbleu = SelfBleu(test_text=self.test_file, gram=i)
                 selfbleu.set_name(f"Selfbleu{i}")
                 self.add_metric(selfbleu)
+
+    def save_summary(self):
+        # summary writer
+        self.sum_writer = tf.summary.FileWriter(
+            self.summary_path, self.sess.graph)
+
 
     def check_valid(self):
         # TODO
