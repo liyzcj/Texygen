@@ -60,7 +60,7 @@ class Gan(metaclass=ABCMeta):
         self.epoch = 0
         return
 
-    def evaluate(self):
+    def evaluate_scores(self):
         from time import time
         log = "epoch:" + str(self.epoch) + '\t'
         scores = list()
@@ -73,6 +73,19 @@ class Gan(metaclass=ABCMeta):
             print(f"time elapsed of {metric.get_name()}: {toc - tic:.1f}s")
             scores.append(score)
         print(log)
+        return scores
+
+    def evaluate(self):
+        if self.oracle_data_loader is not None:
+            self.oracle_data_loader.create_batches(self.generator_file)
+        with open(self.log, 'a') as log:
+            if self.epoch == 0 or self.epoch == 1:
+                head = ["epoch"]
+                for metric in self.metrics:
+                    head.append(metric.get_name())
+                log.write(','.join(head) + '\n')
+            scores = self.evaluate_scores()
+            log.write(','.join([str(s) for s in scores]) + '\n')
         return scores
 
     def check_valid(self):

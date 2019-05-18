@@ -158,14 +158,10 @@ class Generator(Gen):
             tf.gradients(g_loss, self.vars), self.grad_clip)
         self.train_op=g_optimizer.apply_gradients(zip(grads, self.vars))
 
-    def generate(self, approximated=False):
+    def generate(self):
         """gemerate fake smples
-        approximate: if True , return approximate samples.
         """
-        if approximated:
-            return self.gen_x_onehot_adv
-        else:
-            return self.gen_x
+        return self.gen_x
 
     def get_nll(self, sess, x):
         pretrain_loss=sess.run(

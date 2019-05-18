@@ -113,21 +113,6 @@ class Leakgan(Gan):
             _, _ = self.sess.run([self.discriminator.D_loss, self.discriminator.D_train_op], feed)
             self.generator.update_feature_function(self.discriminator)
 
-    def evaluate(self):
-        if self.oracle_data_loader is not None:
-            self.oracle_data_loader.create_batches(self.generator_file)
-        if self.log is not None:
-            with open(self.log, 'a') as log:
-                if self.epoch == 0 or self.epoch == 1:
-                    head = ["epoch"]
-                    for metric in self.metrics:
-                        head.append(metric.get_name())
-                    log.write(','.join(head) + '\n')
-                scores = super().evaluate()
-                log.write(','.join([str(s) for s in scores]) + '\n')
-            return scores
-        return super().evaluate()
-
     def train_oracle(self):
         self.init_oracle_trainng()
         self.init_metric()
@@ -408,6 +393,10 @@ class Leakgan(Gan):
         saver_variables = tf.global_variables()
         saver = tf.train.Saver(saver_variables)
         #++ ====================
+
+        # summary writer
+        self.sum_writer = tf.summary.FileWriter(
+            self.summary_path, self.sess.graph)
 
         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)

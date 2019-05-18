@@ -18,18 +18,6 @@ from utils.utils import *
 class Seqgan(Gan):
     def __init__(self, oracle=None):
         super().__init__()
-        # you can change parameters, generator here
-        self.vocab_size = 20
-        self.emb_dim = 32
-        self.hidden_dim = 32
-        self.sequence_length = 20
-        self.filter_size = [2, 3]
-        self.num_filters = [100, 200]
-        self.l2_reg_lambda = 0.2
-        self.dropout_keep_prob = 0.75
-        self.batch_size = 64
-        self.generate_num = 128
-        self.start_token = 0
 
     def init_metric(self):
         nll = Nll(data_loader=self.oracle_data_loader, rnn=self.oracle, sess=self.sess)
@@ -55,23 +43,6 @@ class Seqgan(Gan):
             }
             loss,_ = self.sess.run([self.discriminator.d_loss, self.discriminator.train_op], feed)
             print(loss)
-
-    def evaluate(self):
-        generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-        if self.oracle_data_loader is not None:
-            self.oracle_data_loader.create_batches(self.generator_file)
-        if self.log is not None:
-            if self.epoch == 0 or self.epoch == 1:
-                self.log.write('epochs, ')
-                for metric in self.metrics:
-                    self.log.write(metric.get_name() + ',')
-                self.log.write('\n')
-            scores = super().evaluate()
-            for score in scores:
-                self.log.write(str(score) + ',')
-            self.log.write('\n')
-            return scores
-        return super().evaluate()
 
     def init_oracle_trainng(self, oracle=None):
         if oracle is None:
@@ -304,9 +275,16 @@ class Seqgan(Gan):
 
         self.sess.run(tf.global_variables_initializer())
 
-        self.pre_epoch_num = 80
-        self.adversarial_epoch_num = 100
-        self.log = open('experiment-log-seqgan-real.csv', 'w')
+        #++ Saver
+        saver_variables = tf.global_variables()
+        saver = tf.train.Saver(saver_variables)
+        #++ ====================
+
+        # summary writer
+        self.sum_writer = tf.summary.FileWriter(
+            self.summary_path, self.sess.graph)
+
+
         generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
 
@@ -327,6 +305,9 @@ class Seqgan(Gan):
         for epoch in range(self.pre_epoch_num):
             print('epoch:' + str(epoch))
             self.train_discriminator()
+
+        # save pre_train
+        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
         self.reset_epoch()
         print('adversarial training:')

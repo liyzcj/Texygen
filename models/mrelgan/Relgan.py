@@ -104,25 +104,10 @@ class MRelgan(Gan):
                 selfbleu.set_name(f"Selfbleu{i}")
                 self.add_metric(selfbleu)
 
-    def evaluate(self):
-        if self.oracle_data_loader is not None:
-            self.oracle_data_loader.create_batches(self.generator_file)
-        if self.log is not None:
-            with open(self.log, 'a') as log:
-                if self.epoch == 0 or self.epoch == 1:
-                    head = ["epoch"]
-                    for metric in self.metrics:
-                        head.append(metric.get_name())
-                    log.write(','.join(head) + '\n')
-                scores = super().evaluate()
-                log.write(','.join([str(s) for s in scores]) + '\n')
-            return scores
-        return super().evaluate()
-
     def evaluate_sum(self):
         self.generate_samples()
         self.get_real_test_file()
-        scores = self.evaluate()
+        self.evaluate()
 
     def train_real(self, data_loc=None):
         self.init_real_training(data_loc)
