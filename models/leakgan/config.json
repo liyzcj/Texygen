@@ -1,17 +1,17 @@
 {
   "vocab_size": null,
-  "emb_dim": 128,
-  "hidden_dim": 128,
+  "emb_dim": 32,
+  "hidden_dim": 32,
   "sequence_length": null,
-  "filter_size": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 32, 37],
-  "num_filters": [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160, 160, 160],
+  "filter_size": [2, 3],
+  "num_filters": [100, 200],
   "l2_reg_lambda": 0.2,
-  "dropout_keep_prob": 1.0,
+  "dropout_keep_prob": 0.75,
   "batch_size": 64,
   "generate_num": 10000,
   "start_token": 0,
-  "dis_embedding_dim": 256,
+  "dis_embedding_dim": 64,
   "goal_size": 16,
   "pre_epoch_num": 80,
-  "adversarial_epoch_num": 200
+  "adversarial_epoch_num": 100
 }

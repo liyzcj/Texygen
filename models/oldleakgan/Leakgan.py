@@ -351,7 +351,7 @@ class OldLeakgan(Gan):
                                       batch_size=self.batch_size, hidden_dim=self.hidden_dim,
                                       start_token=self.start_token,
                                       goal_out_size=goal_out_size, step_size=4,
-                                      l2_reg_lambda=self.l2_reg_lambda)
+                                      l2_reg_lambda=self.l2_reg_lambda, dropout_keep_prob=self.dropout_keep_prob)
         self.set_discriminator(discriminator)
 
         generator = Generator(num_classes=2, num_vocabulary=self.vocab_size, batch_size=self.batch_size,
@@ -381,11 +381,11 @@ class OldLeakgan(Gan):
         inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
         inll.set_name('nll-test')
         self.add_metric(inll)
-
+        
         bleu3 = Bleu(test_text=self.test_file, real_text='data/testdata/test_coco.txt', gram=3)
         bleu3.set_name("bleu-3")
         self.add_metric(bleu3)
-        
+
     def train_real(self, data_loc=None):
         from utils.text_process import code_to_text
         from utils.text_process import get_tokenlized
@@ -416,33 +416,35 @@ class OldLeakgan(Gan):
         for a in range(1):
             g = self.sess.run(self.generator.gen_x, feed_dict={self.generator.drop_out: 1, self.generator.train: 1})
 
-        print('start pre-train generator:')
-        for epoch in range(self.pre_epoch_num):
-            start = time()
-            loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
-            end = time()
-            print(f"pre-G(global epoch:{self.epoch}): epoch:{epoch} \t time: {end - start:.1f}s")
-            self.add_epoch()
-            if epoch % 5 == 0:
-                generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-                get_real_test_file()
-                self.evaluate()
+        print('start pre-train leakgan:')
 
-        print('start pre-train discriminator:')
-        for epoch in range(self.pre_epoch_num):
-            start = time()
-            self.train_discriminator()
-            end = time()
-            print(f"pre-D: epoch:{epoch} \t time: {end - start:.1f}s")
-           
+        for epoch in range(16):
+
+            for epoch_ in range(5):
+                start = time()
+                self.train_discriminator()
+                end = time()
+                print(f"pre-D: epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+            
+            for epoch_ in range(self.pre_epoch_num // 16):
+                start = time()
+                loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
+                end = time()
+                print(f"pre-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
+                if self.epoch % 5 == 0:
+                    generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+                    get_real_test_file()
+                    self.evaluate()
+                self.add_epoch()
+        
         # save pre_train
         saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
         print('start adversarial:')
         self.reset_epoch()
         self.reward = Reward(model=self.generator, dis=self.discriminator, sess=self.sess, rollout_num=4)
-        for epoch in range(self.adversarial_epoch_num // 10):
-            for epoch_ in range(10):
+        for epoch in range(self.adversarial_epoch_num // 15):
+            for epoch_ in range(15):
                 start = time()
                 for index in range(1):
                     samples = self.generator.generate(self.sess, 1)
@@ -465,13 +467,13 @@ class OldLeakgan(Gan):
                     self.evaluate()
 
                 start = time()
-                for epoch__ in range(15):
-                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/15)", end='\r')
+                for epoch__ in range(5):
+                    print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*epoch__ + f"({epoch__}/5)", end='\r')
                     self.train_discriminator()
                 end = time()
-                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*15 + f"(15/15) \t time: {end - start:.1f}s")
+                print(f"adv-D: epoch:{epoch}--{epoch_}: " + '>'*5 + f"(5/5) \t time: {end - start:.1f}s")
 
-            for epoch_ in range(5):
+            for epoch_ in range(1):
                 start = time()
                 loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
                 end = time()
@@ -482,8 +484,3 @@ class OldLeakgan(Gan):
                                          self.generator_file)
                     get_real_test_file()
                     self.evaluate()
-            for epoch_ in range(5):
-                start = time()
-                self.train_discriminator()
-                end = time()
-                print(f"mle-D(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
