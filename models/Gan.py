@@ -1,7 +1,9 @@
 from abc import abstractmethod, ABCMeta
 
 from utils.utils import init_sess
-
+from utils.text_process import code_to_text, get_tokenlized
+import os
+import numpy as np
 
 class Gan(metaclass=ABCMeta):
 
@@ -87,6 +89,80 @@ class Gan(metaclass=ABCMeta):
             scores = self.evaluate_scores()
             log.write(','.join([str(s) for s in scores]) + '\n')
         return scores
+    
+    def evaluate_real(self):
+        self.generate_samples()
+        self.get_real_test_file()
+        self.evaluate()
+
+    def get_real_test_file(self):
+        with open(self.generator_file, 'r') as file:
+            codes = get_tokenlized(self.generator_file)
+        output = code_to_text(codes=codes, dictionary=self.iw_dict)
+        with open(self.test_file, 'w', encoding='utf-8') as outfile:
+            outfile.write(output)
+        output_file = os.path.join(self.output_path, f"epoch_{self.epoch}.txt")
+        with open(output_file, 'w', encoding='utf-8') as of:
+            of.write(output)
+
+    def generate_samples(self):
+        # Generate Samples
+        generated_samples = []
+        for _ in range(int(self.generated_num / self.batch_size)):
+            generated_samples.extend(self.sess.run(self.generator.generate()))
+        codes = list()
+
+        output_file = self.generator_file
+        with open(output_file, 'w') as fout:
+            for sent in generated_samples:
+                buffer = ' '.join([str(x) for x in sent]) + '\n'
+                fout.write(buffer)
+
+    def pre_train_epoch(self):
+        # Pre-train the generator using MLE for one epoch
+        supervised_g_losses = []
+        self.gen_data_loader.reset_pointer()
+
+        for it in range(self.gen_data_loader.num_batch):
+            batch = self.gen_data_loader.next_batch()
+            g_loss = self.generator.pretrain_step(self.sess, batch)
+            supervised_g_losses.append(g_loss)
+
+        return np.mean(supervised_g_losses)
+
+
+    def init_real_metric(self):
+
+        from utils.metrics.Nll import Nll
+        from utils.metrics.DocEmbSim import DocEmbSim
+        from utils.others.Bleu import Bleu
+        from utils.metrics.SelfBleu import SelfBleu
+        from utils.metrics.Scalar import Scalar
+        # temperature
+        t = Scalar(self.sess, self.temperature, "Temperature")
+        self.add_metric(t)
+
+        if self.nll_gen:
+            nll_gen = Nll(self.gen_data_loader, self.generator, self.sess)
+            nll_gen.set_name('nll_gen')
+            self.add_metric(nll_gen)
+        if self.doc_embsim:
+            doc_embsim = DocEmbSim(
+                self.oracle_file, self.generator_file, self.vocab_size)
+            doc_embsim.set_name('doc_embsim')
+            self.add_metric(doc_embsim)
+        if self.bleu:
+            for i in range(3, 4):
+                bleu = Bleu(
+                    test_text=self.test_file,
+                    real_text='data/testdata/test_coco.txt', gram=i)
+                bleu.set_name(f"Bleu{i}")
+                self.add_metric(bleu)
+        if self.selfbleu:
+            for i in range(2, 6):
+                selfbleu = SelfBleu(test_text=self.test_file, gram=i)
+                selfbleu.set_name(f"Selfbleu{i}")
+                self.add_metric(selfbleu)
 
     def check_valid(self):
         # TODO
