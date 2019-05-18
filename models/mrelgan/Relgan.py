@@ -94,7 +94,6 @@ class MRelgan(Gan):
             print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
             self.epoch = self.npre_epochs
         else:
-            bae = 0
             print('start pre-train Relgan:')
             for epoch in range(self.npre_epochs // self.ntest_pre):
                 self.evaluate_real()
@@ -103,10 +102,13 @@ class MRelgan(Gan):
                     self.add_epoch()
 
             # save pre_train
-            saver.save(self.sess, os.path.join(self.save_path, 'pre_train-0'))
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
+
+        # stop after pretrain
         if self.pretrain:
             self.evaluate_real()
             exit()
+            
         print('start adversarial:')
         for _ in range(self.nadv_steps):
 
