@@ -110,7 +110,7 @@ class Gan(metaclass=ABCMeta):
         # Generate Samples
         generated_samples = []
         for _ in range(int(self.generated_num / self.batch_size)):
-            generated_samples.extend(self.sess.run(self.generator.generate()))
+            generated_samples.extend(self.generator.generate(self.sess))
         codes = list()
 
         output_file = self.generator_file
