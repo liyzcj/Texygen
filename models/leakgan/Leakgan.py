@@ -1,4 +1,5 @@
 from time import time
+from colorama import Fore
 
 from models.Gan import Gan
 from models.leakgan.LeakganDataLoader import DataLoader, DisDataloader
@@ -351,41 +352,12 @@ class Leakgan(Gan):
 
         self.set_data_loader(gen_loader=gen_dataloader, dis_loader=dis_dataloader, oracle_loader=oracle_dataloader)
         tokens = get_tokenlized(data_loc)
-        word_set = get_word_list(tokens)
-        [word_index_dict, index_word_dict] = get_dict(word_set)
         with open(self.oracle_file, 'w') as outfile:
-            outfile.write(text_to_code(tokens, word_index_dict, self.sequence_length))
-        return word_index_dict, index_word_dict
+            outfile.write(text_to_code(tokens, self.wi_dict, self.sequence_length))
 
-    def init_real_metric(self):
-        # from utils.metrics.DocEmbSim import DocEmbSim
-        # docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
-        # self.add_metric(docsim)
-
-        inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
-        inll.set_name('nll-test')
-        self.add_metric(inll)
-        from utils.others.Bleu import Bleu
-        bleu3 = Bleu(test_text=self.test_file, real_text='data/testdata/test_coco.txt', gram=3)
-        bleu3.set_name("bleu-3")
-        self.add_metric(bleu3)
-        
     def train_real(self, data_loc=None):
-        from utils.text_process import code_to_text
-        from utils.text_process import get_tokenlized
-        wi_dict, iw_dict = self.init_real_trainng(data_loc)
+        self.init_real_trainng(data_loc)
         self.init_real_metric()
-
-        def get_real_test_file(dict=iw_dict):
-            with open(self.generator_file, 'r') as file:
-                codes = get_tokenlized(self.generator_file)
-            output = code_to_text(codes=codes, dictionary=dict)
-            with open(self.test_file, 'w') as outfile:
-                outfile.write(output)
-            output_file = os.path.join(self.output_path, f"epoch_{self.epoch}.txt")
-            with open(output_file, 'w') as of:
-                of.write(output)
-            
 
         self.sess.run(tf.global_variables_initializer())
         
@@ -395,37 +367,51 @@ class Leakgan(Gan):
         #++ ====================
 
         # summary writer
-        self.sum_writer = tf.summary.FileWriter(
-            self.summary_path, self.sess.graph)
+        self.save_summary()
 
         generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
 
-        for a in range(1):
-            g = self.sess.run(self.generator.gen_x, feed_dict={self.generator.drop_out: 1, self.generator.train: 1})
+        # for a in range(1):
+        #     g = self.sess.run(self.generator.gen_x, feed_dict={self.generator.drop_out: 1, self.generator.train: 1})
 
-        print('start pre-train generator:')
-        for epoch in range(self.pre_epoch_num):
-            start = time()
-            loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
-            end = time()
-            print(f"pre-G(global epoch:{self.epoch}): epoch:{epoch} \t time: {end - start:.1f}s")
-            self.add_epoch()
-            if epoch % 5 == 0:
-                generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-                get_real_test_file()
-                self.evaluate()
+        if self.restore:
+            restore_from = tf.train.latest_checkpoint(self.save_path)
+            saver.restore(self.sess, restore_from)
+            print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
+            self.epoch = self.pre_epoch_num
+        else:
 
-        print('start pre-train discriminator:')
-        for epoch in range(self.pre_epoch_num):
-            start = time()
-            self.train_discriminator()
-            end = time()
-            print(f"pre-D: epoch:{epoch} \t time: {end - start:.1f}s")
-           
-        # save pre_train
-        saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
+            print('start pre-train generator:')
+            for epoch in range(self.pre_epoch_num):
+                start = time()
+                loss = pre_train_epoch_gen(self.sess, self.generator, self.gen_data_loader)
+                end = time()
+                print(f"pre-G(global epoch:{self.epoch}): epoch:{epoch} \t time: {end - start:.1f}s")
+                self.add_epoch()
+                if epoch % self.ntest_pre == 0:
+                    generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+                    self.get_real_test_file()
+                    self.evaluate()
 
+            print('start pre-train discriminator:')
+            for epoch in range(self.pre_epoch_num):
+                start = time()
+                self.train_discriminator()
+                end = time()
+                print(f"pre-D: epoch:{epoch} \t time: {end - start:.1f}s")
+            
+            # save pre_train
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
+
+        # stop after pretrain
+        if self.pretrain:
+            generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
+                                         self.generator_file)
+            self.get_real_test_file()
+            self.evaluate()
+            exit()
+            
         print('start adversarial:')
         self.reset_epoch()
         self.reward = Reward(model=self.generator, dis=self.discriminator, sess=self.sess, rollout_num=4)
@@ -447,9 +433,9 @@ class Leakgan(Gan):
                 end = time()
                 self.add_epoch()
                 print(f"adv-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
-                if epoch_ % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
+                if self.epoch % self.ntest == 0 or epoch == self.adversarial_epoch_num - 1:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
-                    get_real_test_file()
+                    self.get_real_test_file()
                     self.evaluate()
 
                 start = time()
@@ -465,10 +451,10 @@ class Leakgan(Gan):
                 end = time()
                 self.add_epoch()
                 print(f"mle-G(global epoch:{self.epoch}): epoch:{epoch}--{epoch_} \t time: {end - start:.1f}s")
-                if epoch_ % 5 == 0:
+                if self.epoch % self.ntest == 0:
                     generate_samples_gen(self.sess, self.generator, self.batch_size, self.generate_num,
                                          self.generator_file)
-                    get_real_test_file()
+                    self.get_real_test_file()
                     self.evaluate()
             for epoch_ in range(5):
                 start = time()
