@@ -138,11 +138,7 @@ class Gan(metaclass=ABCMeta):
         from utils.metrics.DocEmbSim import DocEmbSim
         from utils.others.Bleu import Bleu
         from utils.metrics.SelfBleu import SelfBleu
-        from utils.metrics.Scalar import Scalar
-        # temperature
-        t = Scalar(self.sess, self.temperature, "Temperature")
-        self.add_metric(t)
-
+        
         if self.nll_gen:
             nll_gen = Nll(self.gen_data_loader, self.generator, self.sess)
             nll_gen.set_name('nll_gen')

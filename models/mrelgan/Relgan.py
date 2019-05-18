@@ -70,6 +70,14 @@ class MRelgan(Gan):
         tokens = get_tokenlized(data_loc)
         with open(self.oracle_file, 'w') as outfile:
             outfile.write(text_to_code(tokens, self.wi_dict, self.seq_len))
+    
+    def init_real_metric(self):
+        
+        from utils.metrics.Scalar import Scalar
+        # temperature
+        t = Scalar(self.sess, self.temperature, "Temperature")
+        self.add_metric(t)
+        super().init_real_metric()
 
     def train_real(self, data_loc=None):
         self.init_real_training(data_loc)
