@@ -135,6 +135,10 @@ class Discriminator(object):
                 l2_loss += tf.nn.l2_loss(W)
                 l2_loss += tf.nn.l2_loss(b)
                 self.scores = tf.nn.xw_plus_b(self.h_drop, W, b, name="scores")
+                ## my code average scores
+                self.scores = tf.reshape(self.scores, [len(self.splited_steps), -1, num_classes])
+                self.scores = tf.reduce_mean(self.scores, axis=0)
+                ## =====
                 self.ypred_for_auc = tf.nn.softmax(self.scores)
                 self.predictions = tf.argmax(self.scores, 1, name="predictions")
 
