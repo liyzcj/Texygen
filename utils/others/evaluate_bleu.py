@@ -1,13 +1,28 @@
-import sys
+import argparse
 import os
+import sys
 from time import time
+
 sys.path.append('d:\\Texygen')
+
 from utils.others.Bleu import Bleu
 
+parser = argparse.ArgumentParser()
 
-test_folder = sys.argv[-1]
+parser.add_argument(
+    "-t", "--test", default="test_coco", help="The test dataset.",
+    metavar="Dataset", choices=['test_coco', 'test_emnlp'], dest='dataset')
+
+parser.add_argument(
+    "-f", "--folder", required=True, help="The folder to evaluate.",
+    metavar="FOLDER", dest="test_folder"
+)
+args = parser.parse_args()
+
+test_folder = args.test_folder
+
 all_file = os.listdir(test_folder)
-test = os.path.join('data', 'testdata', 'test_coco.txt')
+test = os.path.join('data', 'testdata', f'{args.dataset}.txt')
 GRAM = 3
 log_file = os.path.join(test_folder, 'eval_log.csv')
 if not os.path.exists(test_folder):
