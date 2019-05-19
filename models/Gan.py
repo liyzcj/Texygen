@@ -149,10 +149,18 @@ class Gan(metaclass=ABCMeta):
             doc_embsim.set_name('doc_embsim')
             self.add_metric(doc_embsim)
         if self.bleu:
+            FLAGS = tf.app.flags.FLAGS
+            dataset = FLAGS.data
+            if dataset == "image_coco":
+                real_text = 'data/testdata/test_coco.txt'
+            elif dataset == "emnlp_news":
+                real_text = 'data/testdata/test_emnlp.txt'
+            else:
+                raise ValueError
             for i in range(3, 4):
                 bleu = Bleu(
                     test_text=self.test_file,
-                    real_text='data/testdata/test_coco.txt', gram=i)
+                    real_text=real_text, gram=i)
                 bleu.set_name(f"Bleu{i}")
                 self.add_metric(bleu)
         if self.selfbleu:
