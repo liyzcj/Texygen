@@ -32,7 +32,7 @@ class Bleu(Metrics):
     def get_reference(self):
         if self.reference is None:
             reference = list()
-            with open(self.real_data) as real_data:
+            with open(self.real_data, encoding='utf-8') as real_data:
                 for text in real_data:
                     text = nltk.word_tokenize(text)
                     reference.append(text)
@@ -54,7 +54,7 @@ class Bleu(Metrics):
         bleu = list()
         reference = self.get_reference()
         weight = tuple((1. / ngram for _ in range(ngram)))
-        with open(self.test_data) as test_data:
+        with open(self.test_data, encoding='utf-8') as test_data:
             i = 0
             for hypothesis in test_data:
                 if i >= self.sample_size:
