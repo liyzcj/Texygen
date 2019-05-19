@@ -283,7 +283,6 @@ class Seqgan(Gan):
                     self.evaluate_real()
 
             print('start pre-train discriminator:')
-            self.reset_epoch()
             for epoch in range(self.pre_epoch_num):
                 print('epoch:' + str(epoch))
                 self.train_discriminator()
