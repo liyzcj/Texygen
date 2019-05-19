@@ -108,8 +108,8 @@ class MRelgan(Gan):
                     g_pretrain_loss_np = self.pre_train_epoch()
                     self.add_epoch()
 
-            # save pre_train
-            saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
+                # save pre_train
+                saver.save(self.sess, os.path.join(self.save_path, 'pre_train'), global_step=self.epoch)
 
         # stop after pretrain
         if self.pretrain:
