@@ -13,12 +13,12 @@
   "dis_embedding_dim": 64,
   "goal_size": 16,
   "pre_epoch_num": 80,
-  "ntest_pre": 10,
+  "ntest_pre": 40,
   "adversarial_epoch_num": 100,
   "ntest": 10,
   "nll_gen": true,
   "doc_embsim": false,
   "bleu": true,
   "selfbleu": false,
-  "splited_steps": [10, 37]
+  "splited_steps": [20, 51]
 }
