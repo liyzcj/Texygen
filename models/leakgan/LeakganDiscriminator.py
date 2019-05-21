@@ -115,19 +115,20 @@ class Discriminator(Dis):
                     # scope.reuse_variables()
                     embedded_chars = tf.nn.embedding_lookup(W_fe, Feature_input + 1)
 
-                # Mycode : split sentences
-                with tf.name_scope("spliter"):
-                    splited_out = []
-                    for length in self.splited_steps:
-                        W = np.zeros([1, self.sequence_length, 1])
-                        W[0, 0:length, 0] = 1
-                        W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
-                        result = embedded_chars * W
-                        splited_out.append(result)
+                # # Mycode : split sentences
+                # with tf.name_scope("spliter"):
+                #     splited_out = []
+                #     for length in self.splited_steps:
+                #         W = np.zeros([1, self.sequence_length, 1])
+                #         W[0, 0:length, 0] = 1
+                #         W = tf.constant(W, dtype=tf.float32, name=f"W{length}")
+                #         result = embedded_chars * W
+                #         splited_out.append(result)
                     
-                    emb_x_split = tf.concat(splited_out, 0)
+                #     emb_x_split = tf.concat(splited_out, 0)
 
-                embedded_chars_expanded = tf.expand_dims(emb_x_split, -1)
+                # embedded_chars_expanded = tf.expand_dims(emb_x_split, -1)
+                embedded_chars_expanded = tf.expand_dims(embedded_chars, -1)
 
                 # Create a convolution + maxpool layer for each filter size
                 pooled_outputs = []
@@ -169,8 +170,8 @@ class Discriminator(Dis):
                 with tf.name_scope("dropout"):
                     h_drop = tf.nn.dropout(h_highway,dropout_keep_prob)
                 ## my split
-                h_drop = tf.reshape(h_drop, [len(self.splited_steps), -1, self.num_filters_total])
-                h_drop = tf.reduce_mean(h_drop, axis=0)
+                # h_drop = tf.reshape(h_drop, [len(self.splited_steps), -1, self.num_filters_total])
+                # h_drop = tf.reduce_mean(h_drop, axis=0)
                 # ====
             return h_drop
 
