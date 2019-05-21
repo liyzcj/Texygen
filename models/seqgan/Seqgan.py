@@ -24,13 +24,13 @@ class Seqgan(Gan):
         nll = Nll(data_loader=self.oracle_data_loader, rnn=self.oracle, sess=self.sess)
         self.add_metric(nll)
 
-        inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
-        inll.set_name('nll-test')
-        self.add_metric(inll)
+        # inll = Nll(data_loader=self.gen_data_loader, rnn=self.generator, sess=self.sess)
+        # inll.set_name('nll-test')
+        # self.add_metric(inll)
 
-        from utils.metrics.DocEmbSim import DocEmbSim
-        docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
-        self.add_metric(docsim)
+        # from utils.metrics.DocEmbSim import DocEmbSim
+        # docsim = DocEmbSim(oracle_file=self.oracle_file, generator_file=self.generator_file, num_vocabulary=self.vocab_size)
+        # self.add_metric(docsim)
 
     def train_discriminator(self):
         self.generate_samples()
@@ -58,7 +58,7 @@ class Seqgan(Gan):
 
         discriminator = Discriminator(sequence_length=self.sequence_length, num_classes=2, vocab_size=self.vocab_size,
                                       emd_dim=self.emb_dim, filter_sizes=self.filter_size, num_filters=self.num_filters,
-                                      l2_reg_lambda=self.l2_reg_lambda)
+                                      l2_reg_lambda=self.l2_reg_lambda, splited_steps=self.splited_steps)
         self.set_discriminator(discriminator)
 
         gen_dataloader = DataLoader(batch_size=self.batch_size, seq_length=self.sequence_length)
@@ -72,11 +72,11 @@ class Seqgan(Gan):
         self.init_metric()
         self.sess.run(tf.global_variables_initializer())
 
-        self.pre_epoch_num = 80
-        self.adversarial_epoch_num = 100
-        self.log = open('experiment-log-seqgan.csv', 'w')
-        generate_samples(self.sess, self.oracle, self.batch_size, self.generate_num, self.oracle_file)
-        generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+        # self.pre_epoch_num = 80
+        # self.adversarial_epoch_num = 100
+        # self.log = open('experiment-log-seqgan.csv', 'w')
+        generate_samples(self.sess, self.oracle, self.batch_size, self.generated_num, self.oracle_file)
+        generate_samples(self.sess, self.generator, self.batch_size, self.generated_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
         self.oracle_data_loader.create_batches(self.generator_file)
 
@@ -87,17 +87,17 @@ class Seqgan(Gan):
             end = time()
             print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
             self.add_epoch()
-            if epoch % 5 == 0:
-                generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+            if epoch % self.ntest_pre == 0:
+                generate_samples(self.sess, self.generator, self.batch_size, self.generated_num, self.generator_file)
                 self.evaluate()
 
         print('start pre-train discriminator:')
-        self.reset_epoch()
+        # self.reset_epoch()
         for epoch in range(self.pre_epoch_num):
             print('epoch:' + str(epoch))
             self.train_discriminator()
 
-        self.reset_epoch()
+        # self.reset_epoch()
         print('adversarial training:')
         self.reward = Reward(self.generator, .8)
         for epoch in range(self.adversarial_epoch_num):
@@ -114,8 +114,8 @@ class Seqgan(Gan):
             end = time()
             self.add_epoch()
             print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
-            if epoch % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
-                generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+            if epoch % self.ntest == 0 or epoch == self.adversarial_epoch_num - 1:
+                generate_samples(self.sess, self.generator, self.batch_size, self.generated_num, self.generator_file)
                 self.evaluate()
 
             self.reward.update_params()
@@ -174,7 +174,7 @@ class Seqgan(Gan):
         self.pre_epoch_num = 80
         self.adversarial_epoch_num = 100
         self.log = open('experiment-log-seqgan-cfg.csv', 'w')
-        generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+        generate_samples(self.sess, self.generator, self.batch_size, self.generated_num, self.generator_file)
         self.gen_data_loader.create_batches(self.oracle_file)
         self.oracle_data_loader.create_batches(self.generator_file)
         print('start pre-train generator:')
@@ -185,7 +185,7 @@ class Seqgan(Gan):
             print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
             self.add_epoch()
             if epoch % 5 == 0:
-                generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+                generate_samples(self.sess, self.generator, self.batch_size, self.generated_num, self.generator_file)
                 get_cfg_test_file()
                 self.evaluate()
 
@@ -214,7 +214,7 @@ class Seqgan(Gan):
             self.add_epoch()
             print('epoch:' + str(self.epoch) + '\t time:' + str(end - start))
             if epoch % 5 == 0 or epoch == self.adversarial_epoch_num - 1:
-                generate_samples(self.sess, self.generator, self.batch_size, self.generate_num, self.generator_file)
+                generate_samples(self.sess, self.generator, self.batch_size, self.generated_num, self.generator_file)
                 get_cfg_test_file()
                 self.evaluate()
 

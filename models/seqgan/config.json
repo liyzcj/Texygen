@@ -1,8 +1,8 @@
 {
-  "vocab_size": null,
+  "vocab_size": 5000,
   "emb_dim": 32,
   "hidden_dim": 32,
-  "sequence_length": null,
+  "sequence_length": 20,
   "filter_size": [2, 3],
   "num_filters": [100, 200],
   "l2_reg_lambda": 0.2,
@@ -20,5 +20,5 @@
   "doc_embsim": false,
   "bleu": true,
   "selfbleu": false,
-  "splited_steps": [20, 51]
+  "splited_steps": [10, 20]
 }
