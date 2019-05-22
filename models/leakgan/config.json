@@ -12,13 +12,13 @@
   "start_token": 0,
   "dis_embedding_dim": 64,
   "goal_size": 16,
-  "pre_epoch_num": 5,
-  "ntest_pre": 5,
-  "adversarial_epoch_num": 10,
-  "ntest": 1,
+  "pre_epoch_num": 80,
+  "ntest_pre": 10,
+  "adversarial_epoch_num": 100,
+  "ntest": 10,
   "nll_gen": true,
   "doc_embsim": false,
-  "bleu": true,
+  "bleu": false,
   "selfbleu": false,
-  "splited_steps": [20, 51]
+  "splited_steps": [10, 37]
 }
