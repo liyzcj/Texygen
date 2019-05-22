@@ -18,7 +18,7 @@
   "gan_type": "RSGAN",
   "optimizer_name": "adam",
   "npre_epochs": 150,
-  "ntest_pre": 150,
+  "ntest_pre": 20,
   "nadv_steps": 2000,
   "ntest": 20,
   "gsteps": 1,
@@ -28,8 +28,8 @@
   "decay": false,
   "nll_gen": true,
   "doc_embsim": false,
-  "bleu": true,
+  "bleu": false,
   "selfbleu": false,
   "batch_size": 64,
-  "splited_steps": [20, 51]
+  "splited_steps": [10, 37]
 }

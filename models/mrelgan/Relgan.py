@@ -109,7 +109,7 @@ class MRelgan(Gan):
                     self.add_epoch()
 
                 # save pre_train
-                saver.save(self.sess, os.path.join(self.save_path, 'pre_train'), global_step=self.epoch)
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
 
         # stop after pretrain
         if self.pretrain:
