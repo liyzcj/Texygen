@@ -1,4 +1,5 @@
 {
+  "seed": 124,
   "grad_clip": 5.0,
   "vocab_size": 5000,
   "generated_num": 10000,
