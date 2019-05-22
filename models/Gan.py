@@ -106,14 +106,19 @@ class Gan(metaclass=ABCMeta):
         with open(output_file, 'w', encoding='utf-8') as of:
             of.write(output)
 
-    def generate_samples(self):
+    def generate_samples(self, oracle=False):
+        if oracle:
+            generator = self.oracle
+            output_file = self.oracle_file
+        else:
+            generator = self.generator
+            output_file = self.generator_file
         # Generate Samples
         generated_samples = []
         for _ in range(int(self.generated_num / self.batch_size)):
-            generated_samples.extend(self.generator.generate(self.sess))
+            generated_samples.extend(generator.generate(self.sess))
         codes = list()
 
-        output_file = self.generator_file
         with open(output_file, 'w') as fout:
             for sent in generated_samples:
                 buffer = ' '.join([str(x) for x in sent]) + '\n'

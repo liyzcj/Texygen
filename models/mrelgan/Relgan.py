@@ -8,15 +8,150 @@ from models.Gan import Gan
 from models.mrelgan.RelganGenerator import Generator
 from models.mrelgan.RelganDiscriminator import Discriminator
 from models.mrelgan.RelganDataLoader import RealDataLoader
+from models.mrelgan.RelganDataLoader import OracleDataLoader
 from utils.ops import get_losses
 from utils.utils import *
 from utils.text_process import *
+from utils.others.OracleLstm import OracleLstm
 
 
 class MRelgan(Gan):
 
     def __init__(self):
         super().__init__()
+    
+    def init_oracle_training(self):
+        oracle_model = OracleLstm(num_vocabulary=self.vocab_size, batch_size=self.batch_size, emb_dim=self.gen_emb_dim,
+                                  hidden_dim=self.hidden_dim, sequence_length=self.seq_len,
+                                  start_token=self.start_token)
+        self.set_oracle(oracle_model)
+
+        # temperature variable
+        self.temperature = tf.Variable(1., trainable=False, name='temperature')
+
+        generator = Generator(
+            temperature=self.temperature, vocab_size=self.vocab_size, batch_size=self.batch_size,
+            seq_len=self.seq_len, gen_emb_dim=self.gen_emb_dim, mem_slots=self.mem_slots,
+            head_size=self.head_size, num_heads=self.num_heads, hidden_dim=self.hidden_dim,
+            start_token=self.start_token, gpre_lr=self.gpre_lr, grad_clip=self.grad_clip)
+        self.set_generator(generator)
+
+        discriminator = Discriminator(
+            batch_size=self.batch_size, seq_len=self.seq_len, vocab_size=self.vocab_size,
+            dis_emb_dim=self.dis_emb_dim, num_rep=self.num_rep, sn=self.sn, grad_clip=self.grad_clip,
+            splited_steps=self.splited_steps
+        )
+        self.set_discriminator(discriminator)
+
+
+        oracle_loader = OracleDataLoader(self.batch_size, self.seq_len)
+        gen_loader = OracleDataLoader(self.batch_size, self.seq_len)
+
+        self.set_data_loader(gen_loader=gen_loader, dis_loader=None, oracle_loader=oracle_loader)
+
+        # Global step
+        self.global_step = tf.Variable(0, trainable=False)
+        self.global_step_op = self.global_step.assign_add(1)
+
+        # Get losses
+        log_pg, g_loss, d_loss = get_losses(
+            generator, discriminator, self.gan_type)
+
+        # Set Train ops
+        generator.set_train_op(
+            g_loss, self.optimizer_name, self.gadv_lr, global_step=self.global_step,
+            nadv_steps=self.nadv_steps, decay=self.decay)
+        discriminator.set_train_op(
+            d_loss, self.optimizer_name, self.d_lr, global_step=self.global_step,
+            nadv_steps=self.nadv_steps, decay=self.decay
+        )
+
+        # Temperature placeholder
+        self.temp_var = tf.placeholder(tf.float32)
+        self.update_temperature_op = self.temperature.assign(self.temp_var)
+
+    def init_oracle_metric(self):
+        from utils.metrics.Nll import Nll
+
+        nll = Nll(data_loader=self.oracle_data_loader, rnn=self.oracle, sess=self.sess)
+        self.add_metric(nll)
+    
+    def evaluate_oracle(self):
+        self.generate_samples()
+        self.evaluate()
+    
+    def train_oracle(self):
+        print("test")
+        self.init_oracle_training()
+        self.init_oracle_metric()
+
+        self.sess.run(tf.global_variables_initializer())
+
+        self.generate_samples(oracle=True)
+        self.gen_data_loader.create_batches(self.oracle_file)
+
+        # Saver
+        saver_variables = tf.global_variables()
+        saver = tf.train.Saver(saver_variables)
+
+        # summary writer
+        self.save_summary()
+
+        # restore 
+        if self.restore:
+            restore_from = tf.train.latest_checkpoint(self.save_path)
+            saver.restore(self.sess, restore_from)
+            print(f"{Fore.BLUE}Restore from : {restore_from}{Fore.RESET}")
+            self.epoch = self.npre_epochs
+        else:
+            print('start pre-train Relgan:')
+            for epoch in range(self.npre_epochs // self.ntest_pre):
+                self.evaluate_oracle()
+                for _ in tqdm(range(self.ntest_pre), ncols=50):
+                    g_pretrain_loss_np = self.pre_train_epoch()
+                    self.add_epoch()
+
+                # save pre_train
+            saver.save(self.sess, os.path.join(self.save_path, 'pre_train'))
+
+        # stop after pretrain
+        if self.pretrain:
+            self.evaluate_oracle()
+            exit()
+            
+        print('start adversarial:')
+        for _ in range(self.nadv_steps):
+
+            niter = self.sess.run(self.global_step)
+            tic = time.time()
+            # adversarial training
+            for _ in range(self.gsteps):
+                self.generator.train(
+                    self.sess, self.gen_data_loader.random_batch())
+            for _ in range(self.dsteps):
+                self.sess.run(
+                    self.discriminator.train_op,
+                    feed_dict={self.generator.x_real: self.gen_data_loader.random_batch()})
+
+            toc = time.time()
+
+            # temperature
+            temp_var_np = get_fixed_temperature(self.temper, niter, self.nadv_steps, self.adapt)
+            self.sess.run(
+                self.update_temperature_op, 
+                feed_dict={self.temp_var: temp_var_np})
+
+            feed = {self.generator.x_real: self.gen_data_loader.random_batch()}
+            g_loss_np, d_loss_np = self.sess.run(
+                [self.generator.loss, self.discriminator.loss], feed_dict=feed)
+            # update global step
+            self.sess.run(self.global_step_op)
+
+            # print(f"Epoch: {niter} G-loss: {g_loss_np:.4f} D-loss: {d_loss_np:.4f}  Time: {toc-tic:.1f}s")
+
+            if np.mod(niter, self.ntest) == 0:
+                self.evaluate_oracle()
+            self.add_epoch()
 
     def init_real_training(self, data_loc):
 
@@ -149,9 +284,6 @@ class MRelgan(Gan):
             if np.mod(niter, self.ntest) == 0:
                 self.evaluate_real()
             self.add_epoch()
-
-    def train_oracle(self):
-        pass
 
 
 # A function to set up different temperature control policies
