@@ -81,9 +81,6 @@ class MRelgan(Gan):
         self.evaluate()
     
     def train_oracle(self):
-        # set random seed
-        tf.set_random_seed(self.seed)
-        np.random.seed(self.seed)
 
         self.init_oracle_training()
         self.init_oracle_metric()

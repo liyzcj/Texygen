@@ -1,5 +1,4 @@
 {
-  "seed": 124,
   "grad_clip": 5.0,
   "vocab_size": 5000,
   "generated_num": 10000,
@@ -20,7 +19,7 @@
   "optimizer_name": "adam",
   "npre_epochs": 150,
   "ntest_pre": 20,
-  "nadv_steps": 3000,
+  "nadv_steps": 5000,
   "ntest": 20,
   "gsteps": 1,
   "dsteps": 5,
@@ -31,6 +30,6 @@
   "doc_embsim": false,
   "bleu": false,
   "selfbleu": false,
-  "batch_size": 64,
+  "batch_size": 128,
   "splited_steps": [10, 20]
 }
