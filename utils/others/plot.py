@@ -35,7 +35,10 @@ def plot_data(data1, data2, mode, label1, label2):
     x1, y1 = data1[:, 0], data1[:, 1]
     x2, y2 = data2[:, 0], data2[:, 1]
 
+
     # 格式设置
+    
+    plt.tick_params(labelsize=12)
     if mode == 'relgan':
         plt.ylim(0.5, 1.2)
         plt.yticks(np.arange(0.5, 1.2, step=0.1))
@@ -43,8 +46,8 @@ def plot_data(data1, data2, mode, label1, label2):
         plt.plot([150,150], [0.505, 0.645], 'k--', linewidth=2)
 
     elif mode == 'seqgan':
-        plt.ylim(0.7, 1.0)
-        plt.yticks(np.arange(0.7, 1.0, step=0.1))
+        plt.ylim(0.7, 1.1)
+        plt.yticks(np.arange(0.7, 1.1, step=0.1))
         plt.xticks(np.arange(0, 181, step=20))
         plt.plot([80,80], [0.71, 0.77], 'k--', linewidth=2)
 
@@ -57,13 +60,23 @@ def plot_data(data1, data2, mode, label1, label2):
     else:
         raise NotImplementedError("Error!")
 
-    plt.ylabel("NLL_gen")
-    plt.xlabel("Training iterations")
+    font2 = {'family' : 'Times New Roman',
+    'weight' : 'normal',
+    'size'   : 16,
+    }
+
+    plt.ylabel(r"$NLL_{gen}$", font2)
+    plt.xlabel("Training iterations", font2)
 
 
-    plt.plot(x1,y1, label=label1)
-    plt.plot(x2,y2, label=label2)
-    plt.legend()
+    plt.plot(x1,y1, label=label1, linewidth=2)
+    plt.plot(x2,y2, label=label2, linewidth=2)
+    
+    font1 = {'family' : 'Times New Roman',
+    'weight' : 'normal',
+    'size'   : 18,
+    }
+    plt.legend(prop=font1, loc='upper right')
 
 
 if __name__ == "__main__":
@@ -89,14 +102,14 @@ if __name__ == "__main__":
     plt.figure(figsize=[17,12])
 
     plt.subplot(221)
-    plot_data(our_tmp_10, rel_tmp_10, 'relgan', "Improved RelGan", "Relgan")
+    plot_data(our_tmp_10, rel_tmp_10, 'relgan', "Imp-RelGan(10)", "Relgan(10)")
     plt.subplot(222)
-    plot_data(our_tmp_50, rel_tmp_50, 'relgan', "Improved RelGan", "Relgan")
+    plot_data(our_tmp_50, rel_tmp_50, 'relgan', "Imp-RelGan(50)", "Relgan(50)")
     plt.subplot(223)
-    plot_data(our_seqgan, seqgan, 'seqgan', "Improved Seqgan", "Seqgan")
+    plot_data(our_seqgan, seqgan, 'seqgan', "Imp-Seqgan", "Seqgan")
     plt.subplot(224)
-    plot_data(our_leakgan, leakgan, 'leakgan', "Improved Leakgan", "Leakgan")
+    plot_data(our_leakgan, leakgan, 'leakgan', "Imp-Leakgan", "Leakgan")
 
     foo_fig = plt.gcf() # 'get current figure'
-    foo_fig.savefig('foo.eps', format='eps', dpi=1000)
+    foo_fig.savefig('figure.eps', format='eps', dpi=1000)
     plt.show()
